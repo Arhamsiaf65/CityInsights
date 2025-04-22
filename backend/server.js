@@ -1,6 +1,6 @@
 import express from 'express';
-import dotenv from 'dotenv'
-import cors from 'cors'
+import dotenv from 'dotenv';
+import cors from 'cors';
 import { connectDB } from './database/connectDb.js';
 import postroutes from './controllers/post.js';
 import userroutes from './controllers/user.js';
@@ -11,36 +11,47 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enable CORS with specific origin
-const corsOptions = {
-    origin: '*', // Allow all origins (not recommended for production)
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
-};
+// ✅ Allow multiple frontends
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://yourfrontend.com',     // Replace/add any production URL
+  'https://another-frontend.com'  // Add more if needed
+];
 
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
 app.use(cors(corsOptions));
 
-app.options("*", (req, res) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    return res.sendStatus(204);
-});
+// ✅ Handle preflight (OPTIONS) requests
+app.options("*", cors(corsOptions));
 
 app.use(express.json());
 connectDB();
 
-// Basic route
+// ✅ Basic route
 app.get('/', (req, res) => {
-    res.send('Server is running');
+  res.send('Server is running');
 });
 
-app.use('/posts',  postroutes)
-app.use('/users', userroutes)
-app.use('/admin', adminroutes)
+// ✅ API routes
+app.use('/posts', postroutes);
+app.use('/users', userroutes);
+app.use('/admin', adminroutes);
 
+// ✅ Start server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
