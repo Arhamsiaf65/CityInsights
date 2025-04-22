@@ -68,13 +68,13 @@ router.post('/create-user', upload.single('profilePic'), requireRole('admin'), v
       error: error.message
     });
   }
-});
+}); 
 
 
 // get all users
 router.get('/all-users', verifyToken, requireRole('admin'), async (req, res) => {
   try {
-    const users = await User.find().select('-password');
+    const users = await User.find({role: 'user'}).select('-password');
     res.json({ success: true, users });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch users", error: error.message });
