@@ -7,6 +7,19 @@ import bcrypt from 'bcrypt'
 
 const router = express.Router();
 
+
+router.post('/logout', (req, res) => {
+  // If using cookies to store the token:
+  res.clearCookie('adminToken');
+
+  res.status(200).json({
+      success: true,
+      message: "Logged out successfully"
+  });
+});
+
+
+
 // create user
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
