@@ -3,13 +3,14 @@ import User from "../models/user.js";
 import { requireRole, verifyToken } from "../services/auth.js";
 import { imageUpload } from "../cloudinary/uploadImage.js";
 import multer from "multer";
+import bcrypt from 'bcrypt'
 
 const router = express.Router();
 
 // create user
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
-router.post('/create-user', upload.single('profilePic'), requireRole('admin'), verifyToken, async (req, res) => {
+router.post('/create-user', upload.single('profilePic') ,verifyToken, requireRole('admin'),async (req, res) => {
   const { name, email, password, role } = req.body;
   const file = req.file;
 
@@ -80,6 +81,34 @@ router.get('/all-users', verifyToken, requireRole('admin'), async (req, res) => 
     res.status(500).json({ message: "Failed to fetch users", error: error.message });
   }
 });
+
+
+// search users
+router.get('/search-users', verifyToken, requireRole('admin'), async (req, res) => {
+  const { search } = req.query;
+
+  if (!search) {
+    return res.status(400).json({ success: false, message: "Search query is required" });
+  }
+
+  try {
+    const users = await User.find({
+      role: 'user',
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ]
+    }).select('-password');
+
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to search users", error: error.message });
+  }
+});
+
+
+
+
 
 
 // delete user

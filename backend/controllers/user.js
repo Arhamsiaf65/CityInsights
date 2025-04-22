@@ -125,7 +125,7 @@ router.post('/register', upload.single('profilePic'), async (req, res) => {
 
 router.post('/logout', (req, res) => {
   // If using cookies to store the token:
-  res.clearCookie('adminToken');
+  res.clearCookie('adminToken' || 'token');
 
   res.status(200).json({
       success: true,
