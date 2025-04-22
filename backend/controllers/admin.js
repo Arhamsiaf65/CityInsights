@@ -72,7 +72,7 @@ router.post('/create-user', upload.single('profilePic'), requireRole('admin'), v
 
 
 // get all users
-router.get('/users', verifyToken, requireRole('admin'), async (req, res) => {
+router.get('/all-users', verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const users = await User.find().select('-password');
     res.json({ success: true, users });
