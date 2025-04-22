@@ -123,6 +123,16 @@ router.post('/register', upload.single('profilePic'), async (req, res) => {
     }
 });
 
+router.post('/logout', (req, res) => {
+  // If using cookies to store the token:
+  res.clearCookie('token');
+
+  res.status(200).json({
+      success: true,
+      message: "Logged out successfully"
+  });
+});
+
 
 
 router.get('/profile', verifyToken, async (req, res) => {
