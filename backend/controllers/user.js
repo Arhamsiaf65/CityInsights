@@ -19,7 +19,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 router.post('/register', upload.single('profilePic'), async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
     const file = req.file;
   
     if (!name || !email || !password) {
