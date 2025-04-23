@@ -160,6 +160,43 @@ router.get('/profile', verifyToken, async (req, res) => {
 });
 
 
+// apply for publisher role
+// PATCH /users/apply-publisher
+router.patch('/apply-publisher', verifyToken, async (req, res) => {
+  const { requestedRole, bio, portfolio, contact } = req.body;
+  
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        requestedRole,
+        bio,
+        portfolio,
+        contact,
+        verificationStatus: 'pending'
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Role application submitted with verification details",
+      user: {
+        name: updatedUser.name,
+        email: updatedUser.email,
+        requestedRole: updatedUser.requestedRole,
+        bio: updatedUser.bio,
+        portfolio: updatedUser.portfolio,
+        contact: updatedUser.contact
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to apply for role", error: error.message });
+  }
+});
+
+
+
 
 
 export default router;

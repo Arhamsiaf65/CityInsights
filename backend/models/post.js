@@ -6,7 +6,7 @@ const postSchema = new mongoose.Schema({
   content:      { type: String, required: true },
   author:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   images:       [String],                                          
-  category:     { type: String },
+  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   tags:         [String],
   featured:     { type: Boolean, default: false },
   publishedAt:  { type: Date },

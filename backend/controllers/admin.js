@@ -85,6 +85,18 @@ router.post('/create-user', upload.single('profilePic') ,verifyToken, requireRol
 }); 
 
 
+// get all other roles than user
+router.get('/management-roles', verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const users = await User.find({role: 'editor' || 'publisher' || 'admin'}).select('-password');
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch users", error: error.message });
+  }
+});
+
+
+
 // get all users
 router.get('/all-users', verifyToken, requireRole('admin'), async (req, res) => {
   try {
@@ -121,9 +133,6 @@ router.get('/search-users', verifyToken, requireRole('admin'), async (req, res) 
 
 
 
-
-
-
 // delete user
 router.delete('/delete-user/:id', verifyToken, requireRole('admin'), async (req, res) => {
   try {
@@ -142,7 +151,8 @@ router.delete('/delete-user/:id', verifyToken, requireRole('admin'), async (req,
 
 
 
-// PATCH /api/users/:id/role
+// change role of user base on their id
+// PATCH /admin/change-role/:the user id to update/
 router.patch('/change-role/:id', verifyToken, requireRole('admin'), async (req, res) => {
     const { role } = req.body;
   
@@ -175,6 +185,55 @@ router.patch('/change-role/:id', verifyToken, requireRole('admin'), async (req, 
       res.status(500).json({ message: "Failed to update user role", error: error.message });
     }
   });
+
+  // to update users profile
+  // PATCH /admin/update/:userid
+router.patch('/update/:id', verifyToken, requireRole('admin'), async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { name, email , password},
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "User updated successfully",
+      user: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update user", error: error.message });
+  }
+});
+
+
+// the publisher applicants
+// GET /admin/publisher-applicants
+router.get('/publisher-applicants', verifyToken, requireRole('admin'), async (req, res) => {
+  try {
+    const applicants = await User.find({ requestedPublisher: true }).select('-password');
+
+    res.status(200).json({
+      success: true,
+      applicants
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch applicants", error: error.message });
+  }
+});
+
 
 
 export default router;
