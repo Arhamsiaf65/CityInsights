@@ -1,14 +1,12 @@
 // models/Ad.js
-const mongoose = require('mongoose');
-
+import mongoose from "mongoose";
 const AdSchema = new mongoose.Schema({
   businessName: { type: String, required: true },
   title:        { type: String, required: true },
   description:  { type: String },
-  images:       [String],          // ad‐images URLs
+  images:       [String],     
+  link: {type: String},    
     address:     { type: String },
-  startDate:    { type: Date },
-  endDate:      { type: Date },
   createdBy:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status:       { 
                   type: String, 

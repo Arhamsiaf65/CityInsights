@@ -19,7 +19,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 router.post('/register', upload.single('profilePic'), async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     const file = req.file;
   
     if (!name || !email || !password) {
@@ -91,7 +91,6 @@ router.post('/register', upload.single('profilePic'), async (req, res) => {
         }
 
         const user = await User.findOne({ email });
-        console.log(user);
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -105,7 +104,6 @@ router.post('/register', upload.single('profilePic'), async (req, res) => {
 
         // Generate JWT token
         const token = setUser(user); // Generate token using the `setUser` function
-
         res.status(200).json({
             message: "Login successful",
             token, // Send the token to the client
@@ -137,35 +135,84 @@ router.post('/logout', (req, res) => {
 
 router.get('/profile', verifyToken, async (req, res) => {
     try {
-        console.log(req.user);
         const user = await User.findById(req.user.id); // Retrieve the user from the decoded token
-
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
         res.status(200).json({
             success: true,
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                avatar: user.avatar,
-                role: user.role
-            }
+           user
         });
     } catch (error) {
         res.status(500).json({ message: "Failed to retrieve user profile", error: error.message });
     }
 });
 
+router.put('/profile/update', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.id; // User ID from the token
+    const { name, email, password, profilePic, bio, portfolio, contact } = req.body; // Fields to update
+
+    const updatedData = {};
+
+    if (name) updatedData.name = name;
+    if (email) updatedData.email = email;
+    if (password) {
+      // Hash the password if it's provided
+      const hashedPassword = await bcrypt.hash(password, 12);
+      updatedData.password = hashedPassword;
+    }
+    if (profilePic) updatedData.profilePic = profilePic; // Assuming profilePic is URL
+    if (bio) updatedData.bio = bio;
+    if (portfolio) updatedData.portfolio = portfolio;
+    if (contact) updatedData.contact = contact;
+
+    // Find user by ID and update the fields
+    const updatedUser = await User.findByIdAndUpdate(
+      userId, 
+      { $set: updatedData },
+      { new: true, runValidators: true } // Return the updated user
+    );
+
+    // If user is not found
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Send updated user in response
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update profile",
+      error: error.message
+    });
+  }
+});
+
+
 
 // apply for publisher role
 // PATCH /users/apply-publisher
 router.patch('/apply-publisher', verifyToken, async (req, res) => {
   const { requestedRole, bio, portfolio, contact } = req.body;
-  
+
   try {
+    // Check if the user has already applied
+    const user = await User.findById(req.user.id);
+    
+    if (user.verificationStatus === 'applied') {
+      return res.status(400).json({
+        success: false,
+        message: "You have already applied for the publisher role."
+      });
+    }
+
+    // Update the user's role and status
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       {
@@ -173,7 +220,7 @@ router.patch('/apply-publisher', verifyToken, async (req, res) => {
         bio,
         portfolio,
         contact,
-        verificationStatus: 'pending'
+        verificationStatus: 'applied'  // Set status to 'applied'
       },
       { new: true }
     );
@@ -187,13 +234,15 @@ router.patch('/apply-publisher', verifyToken, async (req, res) => {
         requestedRole: updatedUser.requestedRole,
         bio: updatedUser.bio,
         portfolio: updatedUser.portfolio,
-        contact: updatedUser.contact
+        contact: updatedUser.contact,
+        verificationStatus: updatedUser.verificationStatus  // Send updated status
       }
     });
   } catch (error) {
     res.status(500).json({ message: "Failed to apply for role", error: error.message });
   }
 });
+
 
 
 

@@ -20,8 +20,8 @@ const UserSchema = new mongoose.Schema({
   contact:    { type: String }, // 🆕 Phone number
   verificationStatus: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending'
+    enum: ['normal','applied','pending', 'approved', 'rejected'],
+    default: 'normal'
   },
   createdAt:  { type: Date, default: Date.now }
 });

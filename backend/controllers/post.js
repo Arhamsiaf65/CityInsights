@@ -40,11 +40,24 @@ router.post('/create', verifyToken, requireRole('admin', 'publisher', 'editor'),
 
 // Get All posts
 router.get('/', async (req, res) => {
-  const posts = await post.find({})
-    .populate('author', 'name avatar')
-    .populate('category', 'name');
-  res.json(posts);
+  try {
+    const skip = parseInt(req.query.skip) || 0;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const posts = await post.find({})
+      .sort({ createdAt: -1 }) // Newest posts first
+      .skip(skip)
+      .limit(limit)
+      .populate('author', 'name avatar')
+      .populate('category', 'name');
+
+    res.json(posts);
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
+
 
 // Update a post
 router.patch('/:id', verifyToken, requireRole('admin', 'publisher', 'editor'), upload.array('images'), async (req, res) => {
@@ -90,6 +103,39 @@ router.delete('/:id', verifyToken, requireRole('admin', 'publisher', 'editor'), 
   }
 });
 
+// routes/post.js
+// Add the following search route:
+
+// Search posts
+router.get('/search', async (req, res) => {
+  try {
+    const { q } = req.query; // Get search query from the query parameters
+    if (!q) {
+      return res.status(400).json({ message: "Search term is required" });
+    }
+
+    // Build a regex for case-insensitive search
+    const searchQuery = new RegExp(q, 'i'); // 'i' makes the search case-insensitive
+
+    // Search posts by title, content, or tags
+    const posts = await post.find({
+      $or: [
+        { title: { $regex: searchQuery } },
+        { content: { $regex: searchQuery } },
+        { tags: { $regex: searchQuery } },
+      ],
+    })
+      .populate('author', 'name avatar')
+      .populate('category', 'name');
+
+    res.json(posts);
+  } catch (error) {
+    console.error("Error searching posts:", error);
+    res.status(500).json({ message: "Failed to search posts", error: error.message });
+  }
+});
+
+
 // Get a single post
 router.get('/:id', async (req, res) => {
   try {
@@ -130,38 +176,47 @@ router.post('/:id/view', async (req, res) => {
 });
 
 // Like or unlike a post
-router.post('/:id/like', verifyToken, async (req, res) => {
+router.post('/:id/like', verifyToken,async (req, res) => {
   try {
     const postDoc = await post.findById(req.params.id);
     if (!postDoc) return res.status(404).json({ message: "post not found" });
 
-    const userId = req.user.id;
+    const { userId } = req.body;
+    console.log("userId", userId);
+
+    // 🛠 Correct way
     const hasLiked = postDoc.likedBy.includes(userId);
+    console.log("has liked", hasLiked);
 
     if (hasLiked) {
       postDoc.likedBy.pull(userId);
       postDoc.likes--;
+      console.log("Disliked");
     } else {
       postDoc.likedBy.push(userId);
       postDoc.likes++;
+      console.log("Liked");
     }
 
     await postDoc.save();
     res.json({ liked: !hasLiked, totalLikes: postDoc.likes });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Error toggling like", error });
   }
 });
 
+
 // Share a post
-router.post('/:id/share', async (req, res) => {
+router.post('/:id/share' , async (req, res) => {
   try {
-    const post = await post.findByIdAndUpdate(
+    const Post = await post.findByIdAndUpdate(
       req.params.id,
       { $inc: { shares: 1 } },
       { new: true }
     );
-    res.json({ shares: post.shares });
+    
+    res.json({ shares: Post.shares });
   } catch (error) {
     res.status(500).json({ message: "Error tracking share", error });
   }
