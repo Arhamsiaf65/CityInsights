@@ -19,14 +19,16 @@ export function PostsProvider({ children }) {
   const isFetchingRef = useRef(false); // Prevent multiple fetches
 
   // Fetch posts
-  const fetchPosts = async () => {
+  const fetchPosts = async (categorySlug, search = "") => {
     if (loading || !hasMore || isFetchingRef.current) return;
   
     setLoading(true);
     isFetchingRef.current = true;
   
     try {
-      const response = await fetch(`${baseUrl}/posts?skip=${skip}&limit=10`);
+      const response = await fetch(
+        `${baseUrl}/posts?skip=${skip}&limit=10&category=${categorySlug}&search=${search}`
+      );
       const data = await response.json();
   
       if (data.length < 10) {
@@ -43,10 +45,26 @@ export function PostsProvider({ children }) {
     }
   };
   
+
+  const fetchCategoryPosts = async (categorySlug, search = "") => {
+    try {
+      const response = await fetch(
+        `${baseUrl}/posts?category=${categorySlug}&search=${search}`
+      );
+      const data = await response.json();
+  
+      setPosts(data); // Replace current posts
+    } catch (error) {
+      console.error("Failed to fetch category posts:", error);
+    }
+  };
+  
+  
+  
   // Load posts on mount
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  // useEffect(() => {
+  //   fetchPosts();
+  // }, []);
 
   // Handle scroll
   useEffect(() => {
@@ -233,6 +251,7 @@ export function PostsProvider({ children }) {
       value={{
         posts,
         fetchPosts,
+        fetchCategoryPosts,
         setPosts,
         likePost,
         sharePost,
@@ -241,6 +260,8 @@ export function PostsProvider({ children }) {
         postComment,
         searchPosts,
         searchTerm,
+        setSearchTerm,
+        isLoading :loading
       }}
     >
       {children}

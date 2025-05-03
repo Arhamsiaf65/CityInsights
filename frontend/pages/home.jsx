@@ -8,7 +8,7 @@ import { FaCheck, FaFilter } from "react-icons/fa";
 import { FiXCircle } from "react-icons/fi";
 
 function Home() {
-  const { posts,fetchPosts } = useContext(PostsContext);
+  const { posts,fetchPosts, isLoading } = useContext(PostsContext);
   const { categories } = useContext(CategoriesContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -235,26 +235,38 @@ function Home() {
 
           {/* Posts Section */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {filteredPosts.length > 0 ? (
-              filteredPosts.map((post) => (
-                <div key={post._id} className="mb-4 break-inside-avoid">
-                  <PostCard
-                    id={post._id}
-                    image={post.images?.[0]}
-                    author={post.author}
-                    title={post.title}
-                    likes={post.likes}
-                    description={post.content.slice(0, 100) + "..."}
-                    link={`/post/${post._id}`}
-                    details={[post.content]}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="text-center text-gray-400 text-2xl py-20 col-span-full">
-                No posts found matching your filters.
-              </div>
-            )}
+          {isLoading ? (
+  Array.from({ length: 6 }).map((_, idx) => (
+    <div
+      key={idx}
+      className="animate-pulse bg-white p-4 rounded-xl shadow-md space-y-4"
+    >
+      <div className="h-40 bg-gray-300 rounded-lg" />
+      <div className="h-4 bg-gray-300 rounded w-3/4" />
+      <div className="h-4 bg-gray-200 rounded w-1/2" />
+    </div>
+  ))
+) : filteredPosts.length > 0 ? (
+  filteredPosts.map((post) => (
+    <div key={post._id} className="mb-4 break-inside-avoid">
+      <PostCard
+        id={post._id}
+        image={post.images?.[0]}
+        author={post.author}
+        title={post.title}
+        likes={post.likes}
+        description={post.content.slice(0, 100) + "..."}
+        link={`/post/${post._id}`}
+        details={[post.content]}
+      />
+    </div>
+  ))
+) : (
+  <div className="text-center text-gray-400 text-2xl py-20 col-span-full">
+    No posts found matching your filters.
+  </div>
+)}
+
           </div>
         </div>
       </div>

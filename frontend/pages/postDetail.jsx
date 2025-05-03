@@ -155,7 +155,7 @@ const PostDetail = () => {
           )}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => likePost(post._id, userId)}
+              onClick={() => likePost(post._id, user.id)}
               className={`flex gap-1 items-center hover:text-blue-600 transition ${post.isLiked ? "text-blue-600" : ""}`}
             >
               <FaThumbsUp /> {post.likes}

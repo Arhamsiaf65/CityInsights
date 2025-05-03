@@ -7,25 +7,38 @@ import { FaFilter, FaArrowLeft } from 'react-icons/fa';
 
 function Category() {
   const { categorySlug } = useParams();
-  const { posts, fetchPosts, isLoading: postsLoading, searchPosts, searchTerm } = useContext(PostsContext);
+  const {
+    posts,
+    isLoading: postsLoading,
+    fetchPosts
+  } = useContext(PostsContext);
   const { categories, isLoading: categoriesLoading } = useContext(CategoriesContext);
 
   const [sortOption, setSortOption] = useState('');
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
 
-  const category = categories.find((cat) => cat.name === categorySlug);
+  // Safely get category after categories are loaded
+  const category = !categoriesLoading
+    ? categories.find((cat) => cat.name.toLowerCase() === categorySlug.toLowerCase())
+    : null;
 
-  useEffect(()=>{
-    fetchPosts()
-  }, [categorySlug])
-
-  // Perform search when the searchTerm changes
+  // Fetch posts when categorySlug changes
   useEffect(() => {
-    searchPosts(searchTerm); // This will update the posts based on the search term
-  }, [searchTerm]);
+    fetchPosts();
+  }, [categorySlug]);
 
+  // Handle loading state or missing category
+  if (postsLoading || categoriesLoading || !category) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600" />
+      </div>
+    );
+  }
+
+  // Apply filters and sorting
   const filteredPosts = posts
-    .filter((post) => post.category.name === categorySlug)
+    .filter((post) => post.category.name.toLowerCase() === categorySlug.toLowerCase())
     .filter((post) => (showFeaturedOnly ? post.featured : true))
     .sort((a, b) => {
       if (sortOption === 'mostLiked') return b.likes - a.likes;
@@ -34,20 +47,11 @@ function Category() {
       return 0;
     });
 
-  if (postsLoading || categoriesLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600" />
-      </div>
-    );
-  }
-
   return (
     <div className="bg-gray-50 min-h-screen p-4 sm:p-6">
-      {/* Header */}
-      {/* Search and Filter Section */}
+      {/* Filter Section */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 mb-6">
-        {/* Right Section: Sort Options */}
+        {/* Sort Options */}
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-gray-700 mb-2">Sort By</h2>
           <div className="flex flex-wrap gap-3">
@@ -67,16 +71,8 @@ function Category() {
           </div>
         </div>
 
-        {/* Left Section: Search + Featured */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-2/3">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => searchPosts(e.target.value)} // Use searchPosts from context
-            placeholder="Search posts..."
-            className="w-full sm:w-2/3 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 shadow-sm"
-          />
-
+        {/* Featured Only Toggle */}
+        <div className="flex items-center gap-4">
           <button
             onClick={() => setShowFeaturedOnly((prev) => !prev)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-all ${
@@ -91,9 +87,10 @@ function Category() {
         </div>
       </div>
 
+      {/* Category Title */}
       <div className="mb-8 text-center relative">
         <h1 className="text-5xl font-bold text-gray-800 capitalize">
-          {category ? category.name : 'Category'}
+          {category.name}
         </h1>
         <div className="w-24 h-1 bg-blue-700 mx-auto mt-2 rounded" />
         <Link
@@ -105,7 +102,7 @@ function Category() {
         </Link>
       </div>
 
-      {/* Post Grid */}
+      {/* Posts Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPosts.length > 0 ? (
           filteredPosts.map((post) => (
