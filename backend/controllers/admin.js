@@ -3,7 +3,7 @@ import User from "../models/user.js";
 import { requireRole, verifyToken } from "../services/auth.js";
 import { imageUpload } from "../cloudinary/uploadImage.js";
 import multer from "multer";
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs';
 import Post from '../models/post.js'
 import mongoose from "mongoose";
 
