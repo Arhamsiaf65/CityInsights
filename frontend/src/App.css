@@ -1,0 +1,7 @@
+/* Ensure post cards can grow according to their content height */
+.grid > .h-auto {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: auto;
+}
