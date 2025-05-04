@@ -93,12 +93,13 @@ function Home() {
         {/* Sidebar */}
         <div
   ref={filterSidebarRef}
-  className={`bg-white p-5 rounded-2xl shadow-lg z-30 w-60 overflow-y-auto
-  lg:w-full lg:sticky lg:top-24 lg:h-fit 
-  ${isFilterOpen ? "fixed top-16 left-0 h-[calc(100%-4rem)] transform translate-x-0 transition duration-300 ease-in-out" : "fixed top-16 left-[-100%] h-[calc(100%-4rem)] transform transition duration-300 ease-in-out"}
-  ${isFilterOpen ? "lg:relative lg:translate-x-0" : "lg:relative lg:translate-x-0"}
-`}  
+  className={`bg-white p-5 rounded-2xl shadow-lg z-10 overflow-y-auto
+    w-full lg:w-full 
+    md:sticky md:top-28 md:self-start
+    ${isFilterOpen ? "fixed top-16 left-0 h-[calc(100%-4rem)] w-64 transition-transform duration-300 ease-in-out z-40" : "hidden lg:block"}
+  `}
 >
+
 
 
           {/* Filters Header */}

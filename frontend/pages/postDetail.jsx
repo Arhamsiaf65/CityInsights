@@ -10,7 +10,7 @@ import { userContext } from "../context/userContext";
 import { AdContext } from "../context/addContext";
 
 const PostDetail = () => {
-  const { posts, likePost, sharePost, comments, postComment, fetchComments } = useContext(PostsContext);
+  const { posts, likePost, sharePost, comments, postComment, fetchComments, isLoading } = useContext(PostsContext);
   const {isLogin, user} = useContext(userContext)
   const { id } = useParams();
   const { ad } = useContext(AdContext);
@@ -26,19 +26,29 @@ const PostDetail = () => {
     fetchComments(id);
   }, [id]);
 
-  if (!post) {
+  if (isLoading || !post) {
     return (
       <div className="flex flex-col items-center justify-center h-screen text-gray-500">
-        <p className="text-lg mb-4">Post not found.</p>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-        >
-          Go Back
-        </button>
+        {isLoading ? (
+          <>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800 mb-4"></div>
+            <p className="text-lg">Loading post details...</p>
+          </>
+        ) : (
+          <>
+            <p className="text-lg mb-4">Post not found.</p>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              Go Back
+            </button>
+          </>
+        )}
       </div>
     );
   }
+  
 
 
   const handlePostComment = () => {
@@ -288,19 +298,21 @@ const PostDetail = () => {
         </h2>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {console.log(relatedPosts)}
           {relatedPosts.length > 0 ? (
             relatedPosts.map((relatedPost, index) => (
               <PostCard
                 key={index}
+                id = {relatedPost._id}
                 image={relatedPost.images?.[0]}
                 author={relatedPost.author}
                 title={relatedPost.title}
                 likes={relatedPost.likes}
                 description={relatedPost.content.slice(0, 100) + "..."}
-                link={`/post/${relatedPost._id}`}
+                // link={`/post/${relatedPost._id}`}
                 details={[relatedPost.content]}
               />
-            ))
+            ))  
           ) : (
             <p className="text-gray-400 text-center col-span-full">
               No related posts found.

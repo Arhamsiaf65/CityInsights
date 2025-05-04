@@ -62,9 +62,9 @@ export function PostsProvider({ children }) {
   
   
   // Load posts on mount
-  // useEffect(() => {
-  //   fetchPosts();
-  // }, []);
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
   // Handle scroll
   useEffect(() => {
