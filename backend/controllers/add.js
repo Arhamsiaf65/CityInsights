@@ -10,7 +10,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // ✅ Create Ad
-router.post('/create', verifyToken, requireRole('admin', 'editor')  ,upload.array('images'), async (req, res) => {
+router.post('/create', verifyToken, requireRole(['admin', 'editor'])  ,upload.array('images'), async (req, res) => {
   try {
     const { businessName, title,link, description, address } = req.body;
     const images = req.files?.length ? await Promise.all(req.files.map(file => imageUpload(file))) : [];
@@ -92,7 +92,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // ✅ Update Ad
-router.patch('/:id', verifyToken, requireRole('businessOwner', 'admin'), upload.array('images'), async (req, res) => {
+router.patch('/:id', verifyToken, requireRole('admin'), upload.array('images'), async (req, res) => {
   try {
     const ad = await Ad.findById(req.params.id);
     if (!ad) return res.status(404).json({ message: 'Ad not found' });
@@ -123,7 +123,7 @@ router.patch('/:id', verifyToken, requireRole('businessOwner', 'admin'), upload.
 });
 
 // ✅ Delete Ad
-router.delete('/:id', verifyToken, requireRole('businessOwner', 'admin'), async (req, res) => {
+router.delete('/:id', verifyToken, requireRole('admin'), async (req, res) => {
   try {
     const ad = await Ad.findById(req.params.id);
     if (!ad) return res.status(404).json({ message: 'Ad not found' });

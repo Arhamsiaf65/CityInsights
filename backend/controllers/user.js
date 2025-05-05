@@ -241,6 +241,56 @@ router.patch('/apply-publisher', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/publisher-requests', verifyToken, async (req, res) => {
+  try {
+    const publishers = await User.find({ requestedRole: 'publisher' });
+
+    res.status(200).json({
+      success: true,
+      total: publishers.length,
+      users: publishers
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch publisher requests', error: error.message });
+  }
+});
+
+
+
+router.patch('/update-request/:id', verifyToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.query;
+
+  try {
+    const validStatuses = ['accepted', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid status. Use accepted or rejected.' });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        verificationStatus: status,
+        role: status === 'accepted' ? 'publisher' : 'user',
+        requestedRole: null
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `User has been ${status}`,
+      user: updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update verification status', error: error.message });
+  }
+});
+
 
 
 
