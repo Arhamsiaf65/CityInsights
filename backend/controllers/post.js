@@ -11,35 +11,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Create post
-router.post('/create', verifyToken, requireRole('admin', 'publisher', 'editor'), upload.array('images'), async (req, res) => {
-  const { title, content, category, tags } = req.body;
-  try {
-    const images = req.files?.length ? await Promise.all(req.files.map(file => imageUpload(file))) : [];
-
-    // Optional: Validate category ID
-    if (category && (!mongoose.Types.ObjectId.isValid(category) || !(await Category.findById(category)))) {
-      return res.status(400).json({ message: 'Invalid or non-existent category' });
-    }
-
-    const newPost = new post({
-      title,
-      content,
-      author: req.user.id,
-      category,
-      tags,
-      images,
-    });
-
-    await newPost.save();
-    res.status(201).json({ message: 'Post posted successfully', post: newPost });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to create post', error: error.message });
-  }
-});
-
-// Get All posts
-router.get('/', async (req, res) => {
+router.get('/fetch', async (req, res) => {
   try {
     const skip = parseInt(req.query.skip) || 0;
     const limit = parseInt(req.query.limit) || 10;
@@ -58,36 +30,126 @@ router.get('/', async (req, res) => {
   }
 });
 
+router.post('/create', verifyToken, requireRole(['admin', 'publisher', 'editor'])
+  , upload.array('images'), async (req, res) => {
+    const { title, content, category, tags, featured } = req.body;
+    try {
+      const images = req.files?.length ? await Promise.all(req.files.map(file => imageUpload(file))) : [];
 
-// Update a post
-router.patch('/:id', verifyToken, requireRole('admin', 'publisher', 'editor'), upload.array('images'), async (req, res) => {
-  const { title, content, category, tags } = req.body;
+      // Optional: Validate category ID
+      if (category && (!mongoose.Types.ObjectId.isValid(category) || !(await Category.findById(category)))) {
+        return res.status(400).json({ message: 'Invalid or non-existent category' });
+      }
+
+      console.log(featured)
+      const newPost = new post({
+        title,
+        content,
+        author: req.user.id,
+        category,
+        tags,
+        images,
+        featured,
+      });
+
+      await newPost.save();
+      res.status(201).json({ message: 'Post posted successfully', post: newPost });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to create post', error: error.message });
+    }
+  });
+
+
+
+router.get('/', async (req, res) => {
   try {
-    const postToUpdate = await post.findById(req.params.id);
-    if (!postToUpdate) return res.status(404).json({ message: 'Post not found' });
+    const { title, author, category, featured, page = 1, limit = 10 } = req.query;
 
-    const images = req.files?.length ? await Promise.all(req.files.map(file => imageUpload(file))) : postToUpdate.images;
+    const filter = {};
 
-    if (category && (!mongoose.Types.ObjectId.isValid(category) || !(await Category.findById(category)))) {
-      return res.status(400).json({ message: 'Invalid or non-existent category' });
+    if (title) {
+      filter.title = { $regex: title, $options: 'i' };
     }
 
-    postToUpdate.title = title || postToUpdate.title;
-    postToUpdate.content = content || postToUpdate.content;
-    postToUpdate.category = category || postToUpdate.category;
-    postToUpdate.tags = tags || postToUpdate.tags;
-    postToUpdate.images = images;
-    postToUpdate.updatedAt = new Date();
+    if (author) {
+      const authorDoc = await User.findOne({ name: { $regex: author, $options: 'i' } });
+      if (authorDoc) {
+        filter.author = authorDoc._id;
+      } else {
+        return res.status(200).json({ posts: [], totalPages: 0, currentPage: 1, success: true });
+      }
+    }
 
-    await postToUpdate.save();
-    res.json({ message: 'Post updated successfully', post: postToUpdate });
+    if (category) {
+      const categoryDoc = await Category.findOne({ name: { $regex: category, $options: 'i' } });
+      if (categoryDoc) {
+        filter.category = categoryDoc._id;
+      } else {
+        return res.status(200).json({ posts: [], totalPages: 0, currentPage: 1, success: true });
+      }
+    }
+
+    if (featured === 'true') {
+      filter.featured = true;
+    }
+
+    const skip = (page - 1) * limit;
+    const totalPosts = await post.countDocuments(filter);
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    const posts = await post.find(filter)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('author', 'name avatar')
+      .populate('category', 'name')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      posts,
+      totalPages,
+      currentPage: parseInt(page),
+      success: true,
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update post', error: error.message });
+    res.status(500).json({ message: 'Error fetching posts', error: error.message });
   }
 });
 
+
+
+// Update a post
+router.patch('/:id', verifyToken, requireRole(['admin', 'publisher', 'editor']), upload.array('images'), async (req, res) => {
+  const { title, content, category, tags, featured } = req.body;
+
+  // post lookup
+  const postToUpdate = await post.findById(req.params.id);
+  if (!postToUpdate) return res.status(404).json({ message: 'Post not found' });
+
+  // handle images
+  const images = req.files?.length ? await Promise.all(req.files.map(file => imageUpload(file))) : postToUpdate.images;
+
+  // validate category
+  if (category && (!mongoose.Types.ObjectId.isValid(category) || !(await Category.findById(category)))) {
+    return res.status(400).json({ message: 'Invalid or non-existent category' });
+  }
+
+  // assign updates
+  postToUpdate.title = title || postToUpdate.title;
+  postToUpdate.content = content || postToUpdate.content;
+  postToUpdate.category = category || postToUpdate.category;
+  postToUpdate.tags = tags || postToUpdate.tags;
+  postToUpdate.featured = featured || postToUpdate.featured;
+  postToUpdate.images = images;
+  postToUpdate.updatedAt = new Date();
+
+  await postToUpdate.save();
+  res.json({ message: 'Post updated successfully', post: postToUpdate });
+});
+
+
 // Delete a post
-router.delete('/:id', verifyToken, requireRole('admin', 'publisher', 'editor'), async (req, res) => {
+router.delete('/:id', verifyToken, requireRole(['admin', 'publisher', 'editor']), async (req, res) => {
   try {
     const postToDelete = await post.findById(req.params.id);
     if (!postToDelete) return res.status(404).json({ message: 'Post not found' });

@@ -27,14 +27,14 @@ export function PostsProvider({ children }) {
   
     try {
       const response = await fetch(
-        `${baseUrl}/posts?skip=${skip}&limit=10&category=${categorySlug}&search=${search}`
+        `${baseUrl}/posts/fetch?skip=${skip}&limit=10&category=${categorySlug}&search=${search}`
       );
       const data = await response.json();
   
       if (data.length < 10) {
         setHasMore(false);
       }
-  
+      
       setPosts((prevPosts) => [...prevPosts, ...data]);
       setSkip((prevSkip) => prevSkip + 10);
     } catch (error) {

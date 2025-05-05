@@ -168,6 +168,7 @@ export function UserProvider({ children }) {
                 if (res.ok) {
                  
                         setUser(data.user);
+                        toast.success(data.message);
                         console.log("Publisher role application submitted ✅", data.user);
                     
                 } else {

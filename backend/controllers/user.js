@@ -202,12 +202,13 @@ router.patch('/apply-publisher', verifyToken, async (req, res) => {
     // Check if the user has already applied
     const user = await User.findById(req.user.id);
     
-    if (user.verificationStatus === 'applied') {
+    if (['applied', 'pending', 'approved'].includes(user.verificationStatus)) {
       return res.status(400).json({
         success: false,
-        message: "You have already applied for the publisher role."
+        message: "You have already applied or your application is under review."
       });
     }
+    
 
     // Update the user's role and status
     const updatedUser = await User.findByIdAndUpdate(
