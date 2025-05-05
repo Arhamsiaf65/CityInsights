@@ -14,12 +14,14 @@ import User from "../pages/user";
 import { UserProvider } from "../context/userContext";
 import { AdProvider } from "../context/addContext";
 import PublisherRole from "../pages/publisherRole";
+import ScrollToTop from "../components/scrollToTop";
 
 function App() {
   const [count, setCount] = useState(0);
 
   return (
     <Router>
+      <ScrollToTop />
       <Toaster position="top-center" reverseOrder={false} />
       <UserProvider>
       <PostsProvider>

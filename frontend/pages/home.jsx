@@ -93,8 +93,8 @@ function Home() {
         {/* Sidebar */}
         <div
   ref={filterSidebarRef}
-  className={`bg-white p-5 rounded-2xl shadow-lg z-10 overflow-y-auto
-    w-full lg:w-full 
+  className={`bg-white p-5 rounded-r-2xl shadow-lg z-10 overflow-y-auto
+    w-[75%] md:w-full 
     md:sticky md:top-28 md:self-start
     ${isFilterOpen ? "fixed top-16 left-0 h-[calc(100%-4rem)] w-64 transition-transform duration-300 ease-in-out z-40" : "hidden lg:block"}
   `}

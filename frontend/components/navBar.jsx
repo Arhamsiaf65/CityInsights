@@ -17,7 +17,8 @@ import { userContext } from "../context/userContext";
 export default function Navbar() {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [isExploreMenuOpen, setExploreMenuOpen] = useState(false);
+  const [isExploreMenuOpen, setExploreMenuOpen] = useState(false); // desktop only
+  const [isMobileExploreOpen, setMobileExploreOpen] = useState(false); // mobile only
   const [selectedCategory, setSelectedCategory] = useState(null);
   const { login, logout, user, isLogin } = useContext(userContext);
   const { categories } = useContext(CategoriesContext);
@@ -41,9 +42,11 @@ export default function Navbar() {
         setMobileMenuOpen(false);
       }
 
+      // Only close explore on desktop
       if (
         exploreMenuRef.current &&
-        !exploreMenuRef.current.contains(event.target)
+        !exploreMenuRef.current.contains(event.target) &&
+        window.innerWidth >= 768
       ) {
         setExploreMenuOpen(false);
       }
@@ -71,11 +74,13 @@ export default function Navbar() {
     logout();
     setProfileDropdownOpen(false);
     setMobileMenuOpen(false);
+    setMobileExploreOpen(false);
   };
 
   const handleCategorySelect = (category) => {
-    setSelectedCategory(category); // Update selected category
-    setExploreMenuOpen(false); // Close the explore menu after selection
+    setSelectedCategory(category);
+    setExploreMenuOpen(false);
+    setMobileExploreOpen(false);
     navigate(`/category/${category.name}`);
   };
 
@@ -83,7 +88,7 @@ export default function Navbar() {
     <nav className="bg-[#2F5191] text-white px-6 py-5 flex items-center justify-between shadow-md sticky top-0 z-30">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2">
-        <img src="/logo (4).png" alt="Logo" className="w-28 object-contain" />
+        <img src="/logo.png" alt="Logo" className="w-24 h-10 object-contain" />
       </Link>
 
       {/* Center Navigation */}
@@ -94,7 +99,7 @@ export default function Navbar() {
               <NavLink
                 to={to}
                 className={({ isActive }) =>
-                  `transition-colors px-4 py-2   duration-200 hover:text-yellow-400 ${
+                  `transition-colors px-4 py-2 duration-200 hover:text-yellow-400 ${
                     isActive ? "text-yellow-400 font-semibold" : "text-white"
                   }`
                 }
@@ -106,9 +111,9 @@ export default function Navbar() {
 
           <li
             className="relative"
-            onClick={toggleExploreMenu} // Toggle on click
-            onMouseEnter={() => setExploreMenuOpen(true)} // Show on hover
-            onMouseLeave={() => setExploreMenuOpen(false)} // Hide on hover out
+            onClick={toggleExploreMenu}
+            onMouseEnter={() => setExploreMenuOpen(true)}
+            onMouseLeave={() => setExploreMenuOpen(false)}
           >
             <button
               className="hover:text-yellow-400 transition"
@@ -125,12 +130,15 @@ export default function Navbar() {
                 <h3 className="text-gray-800 text-lg font-semibold mb-4 px-2">
                   Explore Categories
                 </h3>
-
                 <div className="grid grid-cols-3 gap-4 max-h-80 overflow-y-auto custom-scrollbar">
                   {categories.map((cat) => (
                     <button
                       key={cat._id}
-                      className={`text-left px-4 py-2 bg-gray-100 rounded-lg hover:bg-blue-100 hover:shadow transition text-sm font-medium text-gray-700 border border-gray-200 ${selectedCategory?._id === cat._id ? 'bg-blue-200' : ''}`}
+                      className={`text-left px-4 py-2 bg-gray-100 rounded-lg hover:bg-blue-100 hover:shadow transition text-sm font-medium text-gray-700 border border-gray-200 ${
+                        selectedCategory?._id === cat._id
+                          ? "bg-blue-200"
+                          : ""
+                      }`}
                       onClick={() => handleCategorySelect(cat)}
                     >
                       <span className="truncate">{cat.name}</span>
@@ -206,43 +214,100 @@ export default function Navbar() {
         <button onClick={toggleMobileMenu} className="focus:outline-none">
           <Menu size={28} className="text-white" />
         </button>
-
         {isMobileMenuOpen && (
-          <div
-            ref={mobileMenuRef}
-            className="absolute right-0 mt-3 w-44 bg-white border border-gray-200 text-blue-900 rounded-xl shadow-xl z-50 p-4 animate-slide-down space-y-2"
-          >
-            {navItems.map(({ to, label, icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 p-2 hover:bg-blue-50 w-full rounded-lg transition"
-              >
-                {icon}
-                <span className="text-sm">{label}</span>
-              </NavLink>
-            ))}
+  <div
+    ref={mobileMenuRef}
+    className="absolute -right-6 mt-4 w-72 bg-white border border-gray-200 text-blue-900 rounded-2xl shadow-2xl z-50 p-5 animate-slide-down space-y-5"
+  >
+    {/* Navigation Links */}
+    <div className="space-y-2">
+      {navItems.map(({ to, label, icon }) => (
+        <NavLink
+          key={to}
+          to={to}
+          onClick={() => setMobileMenuOpen(false)}
+          className="flex items-center gap-3 px-4 py-2 hover:bg-blue-100 hover:scale-[1.02] active:scale-100 rounded-lg transition-all duration-200 text-sm font-medium"
+        >
+          {icon}
+          <span>{label}</span>
+        </NavLink>
+      ))}
+    </div>
 
-            {isLogin ? (
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 p-2 hover:bg-red-100 text-red-600 w-full rounded-lg transition mt-2"
-              >
-                Logout
-              </button>
-            ) : (
-              <NavLink
-                to="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2 p-2 hover:bg-blue-50 w-full rounded-lg transition mt-2"
-              >
-                <LogIn size={18} />
-                <span className="text-sm">Login</span>
-              </NavLink>
-            )}
-          </div>
-        )}
+    {/* Explore Categories */}
+    <div className="border-t border-gray-200 pt-4 space-y-3">
+      <button
+        onClick={() => setMobileExploreOpen((prev) => !prev)}
+        className="flex items-center justify-between w-full px-4 py-2 hover:bg-blue-100 rounded-lg transition text-sm font-semibold"
+      >
+        <span>Explore Categories</span>
+        <ChevronDown
+          size={18}
+          className={`transform transition-transform duration-200 ${
+            isMobileExploreOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {isMobileExploreOpen && (
+        <div className="pl-3 pr-2 max-h-52 overflow-y-auto custom-scrollbar space-y-2">
+          {categories.map((cat) => (
+            <button
+              key={cat._id}
+              onClick={() => {
+                handleCategorySelect(cat);
+                setMobileMenuOpen(false);
+              }}
+              className={`block w-full text-left px-3 py-2 text-sm rounded-lg transition ${
+                selectedCategory?._id === cat._id
+                  ? "bg-blue-200 text-blue-800 font-semibold"
+                  : "hover:bg-blue-100"
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* Apply for Publisher Button */}
+    <div className="border-t border-gray-200 pt-4">
+      <button
+        onClick={() => {
+          navigate("/apply-publisher");
+          setMobileMenuOpen(false);
+        }}
+        className="w-full bg-yellow-400 hover:bg-yellow-300 text-white font-semibold py-2 px-4 rounded-full text-sm shadow-md transition-all duration-200"
+      >
+        Apply for Publisher
+      </button>
+    </div>
+
+    {/* Login / Logout Section */}
+    <div className="border-t border-gray-200 pt-4">
+      {isLogin ? (
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-100 rounded-lg text-sm transition"
+        >
+          Logout
+        </button>
+      ) : (
+        <NavLink
+          to="/login"
+          onClick={() => setMobileMenuOpen(false)}
+          className="w-full flex items-center gap-3 px-4 py-2 hover:bg-blue-100 rounded-lg text-sm transition"
+        >
+          <LogIn size={18} />
+          <span>Login</span>
+        </NavLink>
+      )}
+    </div>
+  </div>
+)}
+
+
       </div>
     </nav>
   );

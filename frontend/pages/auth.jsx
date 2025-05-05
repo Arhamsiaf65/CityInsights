@@ -204,77 +204,74 @@ const AuthPage = ({ type }) => {
 
 
 const StyledWrapper = styled.div`
-height: 100vh;
-display: flex;
-justify-content: center;
-align-items: center;
-background: #0C3883;
-.container {
-  --form-width: 380px;
-  --aspect-ratio: 1.33;
-  --login-box-color: #697EAD;
-  --input-color: #3a3a3a;
-  --button-color: #373737;
-  --footer-color: rgba(255, 255, 255, 0.5);
-  
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--login-box-color);
-  border-radius: 24px;
-  overflow: hidden;
-  width: 800px; /* updated wider width */
-  height: 500px;
-  margin-top: 5px;
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.2),
-    0 8px 16px rgba(0, 0, 0, 0.2),
-    0 0 8px rgba(255, 255, 255, 0.1),
-    0 0 16px rgba(255, 255, 255, 0.08);
-}
-
-.image-section {
-  flex: 1;
-  // background: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.image-section img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.form-section {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: #0C3883;
   padding: 20px;
-}
 
-.login-box {
-  width: 100%;
-  height: auto;
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
-}
+  .container {
+    display: flex;
+    flex-direction: row;
+    width: 800px;
+    height: 500px;
+    background: #697EAD;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.2),
+      0 8px 16px rgba(0, 0, 0, 0.2),
+      0 0 8px rgba(255, 255, 255, 0.1),
+      0 0 16px rgba(255, 255, 255, 0.08);
 
+    @media (max-width: 768px) {
+      flex-direction: column;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  .image-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+
+      @media (max-width: 768px) {
+        height: 200px;
+      }
+    }
+  }
+
+  .form-section {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 768px) {
+      padding: 15px;
+    }
+  }
 
   .form {
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
+    width: 100%;
     gap: 10px;
   }
 
   .logo {
     width: 65px;
     height: 65px;
+    align-self: center;
     background: linear-gradient(
       135deg,
       rgba(255, 255, 255, 0.2),
@@ -314,37 +311,30 @@ background: #0C3883;
     border: 2.5px solid #fff;
   }
 
-  .user {
-    position: absolute;
-    height: 50px;
-    color: #fff;
-  }
-
   .header {
-    width: 100%;
-    text-align: center;
     font-size: 24px;
     font-weight: bold;
-    padding: 6px;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    color: #fff;
+    text-align: center;
+
+    @media (max-width: 480px) {
+      font-size: 20px;
+    }
   }
 
-  .input {
+  .input, .file-input {
     width: 100%;
     padding: 10px;
-    border: none;
     border-radius: 12px;
-    background: var(--input-color);
-    color: white;
+    border: none;
     outline: none;
+    background: #3a3a3a;
+    color: white;
     font-size: 14px;
   }
 
-  .input:focus {
-    border: 1px solid #fff;
+  .file-input {
+    cursor: pointer;
   }
 
   .button {
@@ -355,72 +345,35 @@ background: #0C3883;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    display: grid;
-    place-content: center;
-    gap: 10px;
-    background: var(--button-color);
+    background: #373737;
     color: white;
-    transition: 0.3s;
     box-shadow:
       inset 0px 3px 6px -4px rgba(255, 255, 255, 0.6),
       inset 0px -3px 6px -2px rgba(0, 0, 0, 0.8);
-  }
-  .sign-in {
-    margin-top: 5px;
-  }
-
-  .google-sign-in {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+    transition: 0.3s;
   }
 
   .button:hover {
     background: rgba(255, 255, 255, 0.25);
-    box-shadow:
-      inset 0px 3px 6px rgba(255, 255, 255, 0.6),
-      inset 0px -3px 6px rgba(0, 0, 0, 0.8),
-      0px 0px 8px rgba(255, 255, 255, 0.05);
-  }
-
-  .icon {
-    height: 16px;
   }
 
   .footer {
-    width: 100%;
-    text-align: left;
-    color: var(--footer-color);
-    font-size: 12px;
+    font-size: 14px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+
+    @media (max-width: 480px) {
+      font-size: 13px;
+    }
   }
 
-  .footer .link {
-    position: relative;
-    color: var(--footer-color);
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.3s ease;
+  .link {
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: underline;
   }
+`;
 
-  .footer .link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -2px;
-    width: 0;
-    border-radius: 6px;
-    height: 1px;
-    background: currentColor;
-    transition: width 0.3s ease;
-  }
-
-  .footer .link:hover {
-    color: #fff;
-  }
-
-  .footer .link:hover::after {
-    width: 100%;
-  }`;
 
 export default AuthPage;
