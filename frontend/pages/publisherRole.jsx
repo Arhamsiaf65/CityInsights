@@ -56,7 +56,6 @@ function PublisherRole() {
               value={formData.portfolio}
               onChange={handleChange}
               placeholder="Link to your articles or personal site"
-              
             />
           </div>
 

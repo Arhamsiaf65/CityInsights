@@ -166,14 +166,10 @@ export function UserProvider({ children }) {
                 const data = await res.json();
                 console.log("data", data);
                 if (res.ok) {
-                    if (data.user.verificationStatus.includes('pending')) {
-                        // User has already applied, show a warning toast
-                        toast.warn("You have already applied for the publisher role. Your application is pending verification.");
-                    } else {
-                        // Successfully updated application or first-time application
-                        setUser(data.user); // Update the user state with new role data
+                 
+                        setUser(data.user);
                         console.log("Publisher role application submitted ✅", data.user);
-                    }
+                    
                 } else {
                     console.log("Failed to apply for publisher role:", data.message || "Unknown error");
                     toast.error(data.message);
