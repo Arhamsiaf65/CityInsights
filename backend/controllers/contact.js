@@ -18,19 +18,19 @@ const sendMail = async (name, email, message) => {
 
       // Email options
       const mailOptions = {
-          from: {name, email},
-          to: 'arhamsaif66@gmail.com',
-          subject: 'CITY INSIGHTS USER CONTACT',
+          from: email,
+          to: 'arhamsaif65@gmail.com',
+          subject: `Contact from cityinsight user ${name}  ${email}`,
           text: message,
       };
 
       // Send the email
       await transporter.sendMail(mailOptions);
 
-      res.status(200).json({ success: true, message: 'Email sent successfully.' });
+      return ({ success: true, message: 'Email sent successfully.' });
   } catch (error) {
       console.error('Error sending email:', error);
-      res.status(500).json({ success: false, message: 'Failed to send email.' });
+       return ({ success: false, message: 'Failed to send email.' });
   }
 }
 
@@ -46,7 +46,12 @@ router.post('/', verifyToken, async (req, res) => {
   }
 
   try {
-   sendMail(name, email, message)
+    const result = await sendMail(name, email, message);
+    if (result.success) {
+      return res.status(200).json(result);
+    } else {
+      return res.status(500).json(result);
+    }
   } catch (error) {
     console.error('Error creating contact request:', error);
     return res.status(500).json({
@@ -56,6 +61,7 @@ router.post('/', verifyToken, async (req, res) => {
     });
   }
 });
+
 
 // GET - Get all contact requests
 // router.get('/', verifyToken, requireRole('admin', 'editor'), async (req, res) => {
