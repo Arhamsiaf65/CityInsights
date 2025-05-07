@@ -5,6 +5,7 @@ function User() {
   const { user, updateUser } = useContext(userContext);
   const [editing, setEditing] = useState(false);
   const [updatedUser, setUpdatedUser] = useState({ ...user });
+  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
   const handleEditToggle = () => setEditing(!editing);
 
@@ -39,7 +40,7 @@ function User() {
       <div className="flex justify-center -mt-16">
         <img
           className="w-32 h-32 object-cover rounded-full border-4 border-white"
-          src={user.profilePic || user.avatar}
+          src={user.profilePic || user.avatar || defaultAvatar}
           alt="User Avatar"
         />
       </div>

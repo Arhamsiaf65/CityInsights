@@ -6,7 +6,7 @@ import Post from '../models/post.js'
 
 const router = express.Router();
 
-router.post('/add-category', verifyToken, requireRole('admin'), async (req, res) => {
+router.post('/add-category', verifyToken, requireRole(['admin', 'editor']), async (req, res) => {
   const { name, description } = req.body;
 
   try {
@@ -22,7 +22,7 @@ router.post('/add-category', verifyToken, requireRole('admin'), async (req, res)
   }
 });
 
-router.put('/update-category/:id', verifyToken, requireRole('admin'), async (req, res) => {
+router.put('/update-category/:id', verifyToken, requireRole(['admin', 'editor']), async (req, res) => {
   const { id } = req.params;
   const { name, description } = req.body;
 

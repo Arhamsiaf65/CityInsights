@@ -11,13 +11,14 @@ import { AdContext } from "../context/addContext";
 
 const PostDetail = () => {
   const { posts, likePost, sharePost, comments, postComment, fetchComments, isLoading } = useContext(PostsContext);
-  const {isLogin, user} = useContext(userContext)
-  const { id } = useParams();
+  const { isLogin, user } = useContext(userContext);
   const { ad } = useContext(AdContext);
+  const { id } = useParams();
+  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
   const navigate = useNavigate();
 
   const [commentContent, setCommentContent] = useState("");
-  const [visibleComments, setVisibleComments] = useState(2); // <-- NEW: Initially show 2 comments
+  const [visibleComments, setVisibleComments] = useState(2);
 
   const post = posts.find((p) => p._id === id);
   const relatedPosts = posts.filter((p) => p._id !== id && p.category.name === post?.category?.name).slice(0, 6);
@@ -48,26 +49,23 @@ const PostDetail = () => {
       </div>
     );
   }
-  
-
 
   const handlePostComment = () => {
     if (!isLogin) {
       toast.error("Please login first to comment");
-      navigate('/login');
-      return; // Important: stop execution here
+      navigate("/login");
+      return;
     }
-  
+
     if (!commentContent.trim()) {
       toast.error("Comment cannot be empty");
       return;
     }
-  
+
     postComment(post._id, commentContent, user.id);
     toast.success("Comment posted!");
     setCommentContent("");
   };
-  
 
   const handleShareClick = (platform, postId) => {
     shareOnPlatform(platform, postId);
@@ -111,11 +109,10 @@ const PostDetail = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-6">
-      {/* Main Post */}
+      {/* Post Header */}
       <div className="bg-white rounded-2xl shadow-md p-6 sm:p-10 mb-16">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">{post.title}</h1>
 
-        {/* Author and Meta */}
         <div className="flex items-center space-x-4 text-sm text-gray-500 mb-8">
           {post.author?.avatar && (
             <img
@@ -132,7 +129,7 @@ const PostDetail = () => {
           </div>
         </div>
 
-        {/* Image + Short Intro */}
+        {/* Intro */}
         <div className="flex flex-col lg:flex-row gap-8 mb-10">
           {post.images?.[0] && (
             <div className="flex-shrink-0 w-full lg:w-1/2 overflow-hidden rounded-xl shadow-md">
@@ -149,12 +146,61 @@ const PostDetail = () => {
           </div>
         </div>
 
-        {/* Full Content */}
+        {/* Full Content with Ad */}
         <div className="text-gray-700 leading-relaxed space-y-5 text-base sm:text-lg border-t pt-6">
-          {post.content.slice(250)}
+          {(() => {
+            const contentAfterIntro = post.content.slice(250);
+            const words = contentAfterIntro.split(" ");
+            const wordCount = words.length;
+
+            if (wordCount > 200 && ad) {
+              const halfway = Math.floor(wordCount / 2);
+              const firstHalf = words.slice(0, halfway).join(" ");
+              const secondHalf = words.slice(halfway).join(" ");
+
+              return (
+                <>
+                  <p>{firstHalf}</p>
+                  {/* Ad in Content */}
+                  <div className="my-10 w-full max-w-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-yellow-200">
+                    <div className="bg-yellow-100 px-4 py-2 text-xs font-bold uppercase text-yellow-800 tracking-wide">
+                      Sponsored Ad
+                    </div>
+                    {Array.isArray(ad.images) && ad.images.length > 0 && (
+                      <img
+                        src={ad.images[0]}
+                        alt={ad.title || "Advertisement"}
+                        className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
+                      />
+                    )}
+                    <div className="p-6 flex flex-col items-center text-center space-y-3">
+                      <h3 className="text-2xl font-bold text-gray-800">{ad.title || "Untitled Ad"}</h3>
+                      <p className="text-sm text-gray-600">{ad.description || "No description available."}</p>
+                      {ad.businessName && <p className="text-xs text-gray-400 italic">by {ad.businessName}</p>}
+                      {ad.link ? (
+                        <a
+                          href={ad.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                        >
+                          Learn More
+                        </a>
+                      ) : (
+                        <span className="text-gray-400 text-sm">No link provided</span>
+                      )}
+                    </div>
+                  </div>
+                  <p>{secondHalf}</p>
+                </>
+              );
+            } else {
+              return <p>{contentAfterIntro}</p>;
+            }
+          })()}
         </div>
 
-        {/* Tags, Likes, Shares */}
+        {/* Tags, Likes, Share */}
         <div className="flex flex-wrap items-center gap-4 text-gray-400 text-sm mt-8">
           {post.tags?.length > 0 && (
             <div className="flex gap-2">
@@ -170,47 +216,66 @@ const PostDetail = () => {
             >
               <FaThumbsUp /> {post.likes}
             </button>
-
             <button onClick={() => handleShareClick("facebook", post._id)} className="flex gap-1 hover:text-blue-600">
               <FaFacebook /> {post.shares}
             </button>
-
             <button onClick={() => handleShareClick("whatsapp", post._id)} className="hover:text-green-600">
               <FaWhatsapp />
             </button>
-
             <button onClick={() => handleShareClick("linkedin", post._id)} className="hover:text-blue-700">
               <FaLinkedin />
             </button>
           </div>
         </div>
 
-        {/* Display Comments */}
+        {/* Comments Section */}
         <div className="mt-10 border-t pt-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Comments</h2>
           {comments.length === 0 ? (
             <p className="text-gray-500">No comments yet. Be the first to comment!</p>
           ) : (
             <div className="space-y-4">
-             {Array.isArray(comments) && comments.length > 0 && comments.slice(0, visibleComments).map((comment) => (
-  <div key={comment._id} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
-    <img
-      src={comment.user.avatar}
-      alt={comment.user.name}
-      className="w-10 h-10 rounded-full object-cover"
-    />
-    <div>
-      <div className="font-semibold text-gray-800">{comment.user.name}</div>
-      <p className="text-gray-700 mt-1">{comment.content}</p>
-      <div className="text-xs text-gray-400 mt-1">
-        {new Date(comment.createdAt).toLocaleString()}
-      </div>
-    </div>
+              
+
+              {Array.isArray(comments) && comments.length === 0 ? (
+  <p className="text-gray-500">No comments yet. Be the first to comment!</p>
+) : (
+  <div className="space-y-4">
+    {Array.isArray(comments) && comments.slice(0, visibleComments).map((comment) => (
+       <div key={comment._id} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
+       <img
+         src={comment.user.avatar || defaultAvatar}
+         alt={comment.user.name}
+         className="w-10 h-10 rounded-full object-cover"
+       />
+       <div>
+         <div className="font-semibold text-gray-800">{comment.user.name}</div>
+         <p className="text-gray-700 mt-1">{comment.content}</p>
+         <div className="text-xs text-gray-400 mt-1">
+           {new Date(comment.createdAt).toLocaleString()}
+         </div>
+       </div>
+     </div>
+
+    ))}
   </div>
-))}
+)}
 
 
-              {/* Load More Comments Button */}
+
+
+
+
+
+
+
+
+
+
+
+             
+
+              
               {visibleComments < comments.length && (
                 <div className="flex justify-center">
                   <button
@@ -225,7 +290,7 @@ const PostDetail = () => {
           )}
         </div>
 
-        {/* Comment Input */}
+        {/* Add Comment Box */}
         <div className="mt-10 border-t pt-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Leave a Comment</h2>
           <textarea
@@ -244,82 +309,36 @@ const PostDetail = () => {
         </div>
       </div>
 
-
-
-{/* Add section */}
-{ad ? (
-  <div className="my-10 w-full max-w-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-yellow-200">
-    <div className="bg-yellow-100 px-4 py-2 text-xs font-bold uppercase text-yellow-800 tracking-wide">
-      Sponsored Ad
-    </div>
-
-    {Array.isArray(ad.images) && ad.images.length > 0 && (
-      <img
-        src={ad.images[0]}
-        alt={ad.title || "Advertisement"}
-        className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
-      />
-    )}
-
-    <div className="p-6 flex flex-col items-center text-center space-y-3">
-      <h3 className="text-2xl font-bold text-gray-800">{ad.title || "Untitled Ad"}</h3>
-      <p className="text-sm text-gray-600">{ad.description || "No description available."}</p>
-
-      {ad.businessName && (
-        <p className="text-xs text-gray-400 italic">by {ad.businessName}</p>
-      )}
-
-      {ad.link ? (
-        <a
-          href={ad.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-        >
-          Learn More
-        </a>
-      ) : (
-        <span className="text-gray-400 text-sm">No link provided</span>
-      )}
-    </div>
-  </div>
-) : (
-  <div className="text-center text-gray-400 mt-10">No advertisement to show.</div>
-)}
-
-
-
-
-      {/* Related Posts */}
-      <div className="mt-10">
-        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-6 relative">
-          Other Related Insights
-          <span className="block w-20 h-[2px] bg-gray-800 mt-2 rounded-full animate-pulse"></span>
-        </h2>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {console.log(relatedPosts)}
-          {relatedPosts.length > 0 ? (
-            relatedPosts.map((relatedPost, index) => (
-              <PostCard
-                key={index}
-                id = {relatedPost._id}
-                image={relatedPost.images?.[0]}
-                author={relatedPost.author}
-                title={relatedPost.title}
-                likes={relatedPost.likes}
-                description={relatedPost.content.slice(0, 100) + "..."}
-                // link={`/post/${relatedPost._id}`}
-                details={[relatedPost.content]}
-              />
-            ))  
-          ) : (
-            <p className="text-gray-400 text-center col-span-full">
-              No related posts found.
-            </p>
+      {/* Bottom Ad Section */}
+      {ad && (
+        <div className="my-10 w-full max-w-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-yellow-200">
+          <div className="bg-yellow-100 px-4 py-2 text-xs font-bold uppercase text-yellow-800 tracking-wide">
+            Sponsored Ad
+          </div>
+          {Array.isArray(ad.images) && ad.images.length > 0 && (
+            <img
+              src={ad.images[0]}
+              alt={ad.title || "Advertisement"}
+              className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
+            />
           )}
+          <div className="p-6 flex flex-col items-center text-center space-y-3">
+            <h3 className="text-2xl font-bold text-gray-800">{ad.title || "Untitled Ad"}</h3>
+            <p className="text-sm text-gray-600">{ad.description || "No description available."}</p>
+            {ad.businessName && <p className="text-xs text-gray-400 italic">by {ad.businessName}</p>}
+            {ad.link && (
+              <a
+                href={ad.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Learn More
+              </a>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

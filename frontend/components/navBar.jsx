@@ -25,6 +25,7 @@ export default function Navbar() {
   const mobileMenuRef = useRef(null);
   const exploreMenuRef = useRef(null);
   const profileRef = useRef(null);
+  const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
   const navigate = useNavigate();
 
   const navItems = [
@@ -165,7 +166,7 @@ export default function Navbar() {
         {isLogin ? (
           <div className="relative" ref={profileRef}>
             <img
-              src={user?.avatar || "/user-avatar.jpg"}
+              src={user?.avatar || defaultAvatar}
               alt="Profile"
               className="w-9 h-9 rounded-full border-2 border-white shadow cursor-pointer hover:scale-105 transition-transform"
               onClick={() => setProfileDropdownOpen((prev) => !prev)}
