@@ -25,9 +25,6 @@ export const AdProvider = ({ children }) => {
 
     // Fetch all ads
    
-
-
-
     return (
         <AdContext.Provider
             value={{

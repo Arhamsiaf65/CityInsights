@@ -1,3 +1,15 @@
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PostCard from "../components/postCard";
@@ -107,9 +119,44 @@ const PostDetail = () => {
     window.addEventListener("focus", handleFocus, { once: true });
   };
 
+  const renderMiddleAd = () => (
+    <div className="my-10 w-full max-w-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-yellow-200">
+      <div className="bg-yellow-100 px-4 py-2 text-xs font-bold uppercase text-yellow-800 tracking-wide">
+        Sponsored Ad
+      </div>
+      {Array.isArray(ad.images) && ad.images.length > 0 && (
+        <img
+          src={ad.images[0]}
+          alt={ad.title || "Advertisement"}
+          className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
+        />
+      )}
+      <div className="p-6 flex flex-col items-center text-center space-y-3">
+        <h3 className="text-2xl font-bold text-gray-800">{ad.title || "Untitled Ad"}</h3>
+        <p className="text-sm text-gray-600">{ad.description || "No description available."}</p>
+        {ad.businessName && <p className="text-xs text-gray-400 italic">by {ad.businessName}</p>}
+        {ad.link ? (
+          <a
+            href={ad.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+          >
+            Learn More
+          </a>
+        ) : (
+          <span className="text-gray-400 text-sm">No link provided</span>
+        )}
+      </div>
+    </div>
+  );
+
+  const contentAfterIntro = post.content.slice(250);
+  const words = contentAfterIntro.trim().split(/\s+/);
+  const wordCount = words.length;
+
   return (
     <div className="max-w-5xl mx-auto p-6">
-      {/* Post Header */}
       <div className="bg-white rounded-2xl shadow-md p-6 sm:p-10 mb-16">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">{post.title}</h1>
 
@@ -129,7 +176,6 @@ const PostDetail = () => {
           </div>
         </div>
 
-        {/* Intro */}
         <div className="flex flex-col lg:flex-row gap-8 mb-10">
           {post.images?.[0] && (
             <div className="flex-shrink-0 w-full lg:w-1/2 overflow-hidden rounded-xl shadow-md">
@@ -146,51 +192,17 @@ const PostDetail = () => {
           </div>
         </div>
 
-        {/* Full Content with Ad */}
+        {/* Full Content */}
         <div className="text-gray-700 leading-relaxed space-y-5 text-base sm:text-lg border-t pt-6">
           {(() => {
-            const contentAfterIntro = post.content.slice(250);
-            const words = contentAfterIntro.split(" ");
-            const wordCount = words.length;
-
-            if (wordCount > 200 && ad) {
-              const halfway = Math.floor(wordCount / 2);
+            if (wordCount > 300 && ad) {
+              const halfway = Math.floor(words.length / 2);
               const firstHalf = words.slice(0, halfway).join(" ");
               const secondHalf = words.slice(halfway).join(" ");
-
               return (
                 <>
                   <p>{firstHalf}</p>
-                  {/* Ad in Content */}
-                  <div className="my-10 w-full max-w-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-yellow-200">
-                    <div className="bg-yellow-100 px-4 py-2 text-xs font-bold uppercase text-yellow-800 tracking-wide">
-                      Sponsored Ad
-                    </div>
-                    {Array.isArray(ad.images) && ad.images.length > 0 && (
-                      <img
-                        src={ad.images[0]}
-                        alt={ad.title || "Advertisement"}
-                        className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
-                      />
-                    )}
-                    <div className="p-6 flex flex-col items-center text-center space-y-3">
-                      <h3 className="text-2xl font-bold text-gray-800">{ad.title || "Untitled Ad"}</h3>
-                      <p className="text-sm text-gray-600">{ad.description || "No description available."}</p>
-                      {ad.businessName && <p className="text-xs text-gray-400 italic">by {ad.businessName}</p>}
-                      {ad.link ? (
-                        <a
-                          href={ad.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-                        >
-                          Learn More
-                        </a>
-                      ) : (
-                        <span className="text-gray-400 text-sm">No link provided</span>
-                      )}
-                    </div>
-                  </div>
+                  {renderMiddleAd()}
                   <p>{secondHalf}</p>
                 </>
               );
@@ -200,7 +212,7 @@ const PostDetail = () => {
           })()}
         </div>
 
-        {/* Tags, Likes, Share */}
+        {/* Tags and Interaction */}
         <div className="flex flex-wrap items-center gap-4 text-gray-400 text-sm mt-8">
           {post.tags?.length > 0 && (
             <div className="flex gap-2">
@@ -230,67 +242,52 @@ const PostDetail = () => {
 
         {/* Comments Section */}
         <div className="mt-10 border-t pt-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Comments</h2>
-          {comments.length === 0 ? (
-            <p className="text-gray-500">No comments yet. Be the first to comment!</p>
-          ) : (
-            <div className="space-y-4">
-              
-
-              {Array.isArray(comments) && comments.length === 0 ? (
+<h2 className="text-xl font-semibold text-gray-800 mb-4">Comments</h2>
+{comments.length === 0 ? (
   <p className="text-gray-500">No comments yet. Be the first to comment!</p>
 ) : (
   <div className="space-y-4">
-    {Array.isArray(comments) && comments.slice(0, visibleComments).map((comment) => (
-       <div key={comment._id} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
-       <img
-         src={comment.user.avatar || defaultAvatar}
-         alt={comment.user.name}
-         className="w-10 h-10 rounded-full object-cover"
-       />
-       <div>
-         <div className="font-semibold text-gray-800">{comment.user.name}</div>
-         <p className="text-gray-700 mt-1">{comment.content}</p>
-         <div className="text-xs text-gray-400 mt-1">
-           {new Date(comment.createdAt).toLocaleString()}
-         </div>
-       </div>
-     </div>
+    
 
-    ))}
-  </div>
+    {Array.isArray(comments) && comments.length === 0 ? (
+<p className="text-gray-500">No comments yet. Be the first to comment!</p>
+) : (
+<div className="space-y-4">
+{Array.isArray(comments) && comments.slice(0, visibleComments).map((comment) => (
+<div key={comment._id} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
+<img
+src={comment.user.avatar || defaultAvatar}
+alt={comment.user.name}
+className="w-10 h-10 rounded-full object-cover"
+/>
+<div>
+<div className="font-semibold text-gray-800">{comment.user.name}</div>
+<p className="text-gray-700 mt-1">{comment.content}</p>
+<div className="text-xs text-gray-400 mt-1">
+ {new Date(comment.createdAt).toLocaleString()}
+</div>
+</div>
+</div>
+
+))}
+</div>
 )}
 
+    {visibleComments < comments.length && (
+      <div className="flex justify-center">
+        <button
+          onClick={() => setVisibleComments((prev) => prev + 3)}
+          className="mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition"
+        >
+          Load More Comments
+        </button>
+      </div>
+    )}
+  </div>
+)}
+</div>
 
-
-
-
-
-
-
-
-
-
-
-
-             
-
-              
-              {visibleComments < comments.length && (
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => setVisibleComments((prev) => prev + 3)}
-                    className="mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition"
-                  >
-                    Load More Comments
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Add Comment Box */}
+        {/* Add Comment */}
         <div className="mt-10 border-t pt-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Leave a Comment</h2>
           <textarea
@@ -309,36 +306,8 @@ const PostDetail = () => {
         </div>
       </div>
 
-      {/* Bottom Ad Section */}
-      {ad && (
-        <div className="my-10 w-full max-w-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-yellow-200">
-          <div className="bg-yellow-100 px-4 py-2 text-xs font-bold uppercase text-yellow-800 tracking-wide">
-            Sponsored Ad
-          </div>
-          {Array.isArray(ad.images) && ad.images.length > 0 && (
-            <img
-              src={ad.images[0]}
-              alt={ad.title || "Advertisement"}
-              className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
-            />
-          )}
-          <div className="p-6 flex flex-col items-center text-center space-y-3">
-            <h3 className="text-2xl font-bold text-gray-800">{ad.title || "Untitled Ad"}</h3>
-            <p className="text-sm text-gray-600">{ad.description || "No description available."}</p>
-            {ad.businessName && <p className="text-xs text-gray-400 italic">by {ad.businessName}</p>}
-            {ad.link && (
-              <a
-                href={ad.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-              >
-                Learn More
-              </a>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Bottom Ad (Only for short content) */}
+      {ad && wordCount <= 300 && renderMiddleAd()}
     </div>
   );
 };
