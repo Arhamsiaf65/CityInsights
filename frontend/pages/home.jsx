@@ -346,6 +346,8 @@ function Home() {
       ? 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
       : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
   }`}
+
+
 >
   {isLoading ? (
     Array.from({ length: 6 }).map((_, idx) => (
@@ -362,36 +364,41 @@ function Home() {
     posts.map((post, index) => (
       <React.Fragment key={post._id}>
         {/* Insert ad after the 3rd post */}
-        {index === 1 && (
-          <div className="break-inside-avoid col-span-1">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl shadow-md p-4">
-              <img
-                src={ad.images}
-                alt="Ad"
-                className="w-full h-40 object-cover rounded-lg mb-3"
-              />
-              <h2 className="text-xl font-bold text-gray-800 mb-1">
-                {ad.title}
-              </h2>
-              <p className="text-sm text-gray-600 mb-2">{ad.description}</p>
-              <p className="text-sm text-gray-500 mb-1">
-                <strong>Location:</strong> {ad.address}
-              </p>
-              {ad.link && (
-                <a
-                  href={ad.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-700 underline text-sm"
-                >
-                  Visit Website
-                </a>
-              )}
-              <p className="mt-2 text-xs text-gray-400">
-                Sponsored by Insights
-              </p>
-            </div>
+        {index === 4 && (
+        <div className="col-span-full">
+        <div className="relative bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-50 border border-yellow-200 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row items-center gap-6 overflow-hidden">
+          <img
+            src={ad.images}
+            alt="Ad"
+            className="w-[65%] md:w-1/2 h-64 object-cover rounded-xl shadow-md"
+          />
+          <div className="flex-1">
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              {ad.title}
+            </h2>
+            <p className="text-base text-gray-600 mb-3">
+              {ad.description}
+            </p>
+            <p className="text-sm text-gray-500 mb-2">
+              <strong>Location:</strong> {ad.address}
+            </p>
+            {ad.link && (
+              <a
+                href={ad.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-2 px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 transition"
+              >
+                Visit Website
+              </a>
+            )}
+            <p className="mt-4 text-xs text-gray-400 italic">
+              Sponsored by Insights
+            </p>
           </div>
+        </div>
+      </div>
+      
         )}
 
         <div className="break-inside-avoid">
@@ -413,7 +420,16 @@ function Home() {
       No posts found matching your filters.
     </div>
   )}
+
+ 
 </div>
+
+
+{loadingMore && (
+    <div className="flex justify-center py-10">
+      <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  )}
 
 </div>
 
