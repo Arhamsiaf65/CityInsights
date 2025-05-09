@@ -8,9 +8,10 @@ import { CategoriesContext } from "../context/categoriesContext";
 import { FaCheck, FaCross, FaFilter, FaCog } from "react-icons/fa";
 import { FiXCircle } from "react-icons/fi";
 import ScrollToTop from "../components/scrollToTop";
+import { AdContext } from "../context/addContext";
 
 function Home() {
-  const { posts, fetchPosts, isLoading, popularPosts, loadingMore } = useContext(PostsContext);
+  const { posts, fetchPosts, isLoading, popularPosts, loadingMore , searchPosts} = useContext(PostsContext);
   const {isLogin} = useContext(userContext);
   const { categories } = useContext(CategoriesContext);
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,11 +19,22 @@ function Home() {
   const [sortOption, setSortOption] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
+  const {ad} = useContext(AdContext);
 
   useEffect(() => {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+    
+        searchPosts(searchTerm);
+      
+    }, 500); // debounce to avoid spamming search
+  
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm]);
+  
   const filterSidebarRef = useRef(null);
 
 
@@ -319,51 +331,92 @@ function Home() {
 
 
           {/* Main Content */}
-        {   <div className="lg:col-span-4 px-2 bg-white rounded-2xl sm:px-6">
-            <div className=" bg-white py-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-start relative drop-shadow-md ">
-                FOR YOU
-                <span className="block w-24 sm:w-58 h-[2px] bg-blue-900 mt-3 rounded-full shadow-sm"></span>
-              </h1>
+          <div className="lg:col-span-4 px-2 bg-white rounded-2xl sm:px-6">
+  <div className="bg-white py-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
+    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-start relative drop-shadow-md">
+      FOR YOU
+      <span className="block w-24 sm:w-58 h-[2px] bg-blue-900 mt-3 rounded-full shadow-sm"></span>
+    </h1>
+  </div>
 
-            </div>
-
-            {/* Posts Section */}
-            <div className={` grid grid-cols-1  gap-6  ${isFilterOpen ? "sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}` }>
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="animate-pulse bg-white p-4 rounded-xl shadow-md space-y-4"
-                  >
-                    <div className="h-40 bg-gray-300 rounded-lg" />
-                    <div className="h-4 bg-gray-300 rounded w-3/4" />
-                    <div className="h-4 bg-gray-200 rounded w-1/2" />
-                  </div>
-                ))
-              ) : posts.length > 0 ? (
-                posts.map((post) => (
-                  <div key={post._id} className="mb-4  break-inside-avoid">
-                    <PostCard
-                      id={post._id}
-                      image={post.images?.[0]}
-                      author={post.author}
-                      title={post.title}
-                      likes={post.likes}
-                      description={post.content.slice(0, 100) + "..."}
-                      link={`/post/${post._id}`}
-                      details={[post.content]}
-                    />
-                  </div>
-                ))
-
-              ) : (
-                <div className="text-center text-gray-400 text-2xl py-20 col-span-full">
-                  {/* No posts found matching your filters. */}
-                </div>
+  {/* Posts Section */}
+  <div
+  className={`grid gap-6 ${
+    isFilterOpen
+      ? 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+      : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+  }`}
+>
+  {isLoading ? (
+    Array.from({ length: 6 }).map((_, idx) => (
+      <div
+        key={idx}
+        className="animate-pulse bg-white p-4 rounded-xl shadow-md space-y-4"
+      >
+        <div className="h-40 bg-gray-300 rounded-lg" />
+        <div className="h-4 bg-gray-300 rounded w-3/4" />
+        <div className="h-4 bg-gray-200 rounded w-1/2" />
+      </div>
+    ))
+  ) : posts.length > 0 ? (
+    posts.map((post, index) => (
+      <React.Fragment key={post._id}>
+        {/* Insert ad after the 3rd post */}
+        {index === 1 && (
+          <div className="break-inside-avoid col-span-1">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl shadow-md p-4">
+              <img
+                src={ad.images}
+                alt="Ad"
+                className="w-full h-40 object-cover rounded-lg mb-3"
+              />
+              <h2 className="text-xl font-bold text-gray-800 mb-1">
+                {ad.title}
+              </h2>
+              <p className="text-sm text-gray-600 mb-2">{ad.description}</p>
+              <p className="text-sm text-gray-500 mb-1">
+                <strong>Location:</strong> {ad.address}
+              </p>
+              {ad.link && (
+                <a
+                  href={ad.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-700 underline text-sm"
+                >
+                  Visit Website
+                </a>
               )}
+              <p className="mt-2 text-xs text-gray-400">
+                Sponsored by Insights
+              </p>
             </div>
-          </div>}
+          </div>
+        )}
+
+        <div className="break-inside-avoid">
+          <PostCard
+            id={post._id}
+            image={post.images?.[0]}
+            author={post.author}
+            title={post.title}
+            likes={post.likes}
+            description={post.content.slice(0, 100) + '...'}
+            link={`/post/${post._id}`}
+            details={[post.content]}
+          />
+        </div>
+      </React.Fragment>
+    ))
+  ) : (
+    <div className="text-center text-gray-400 text-2xl py-20 col-span-full">
+      No posts found matching your filters.
+    </div>
+  )}
+</div>
+
+</div>
+
         </div>
 
 

@@ -1,15 +1,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
 import React, { useContext, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PostCard from "../components/postCard";
@@ -22,7 +13,8 @@ import { userContext } from "../context/userContext";
 import { AdContext } from "../context/addContext";
 
 const PostDetail = () => {
-  const { posts, likePost, sharePost, comments, postComment, fetchComments, postView, isLoading } = useContext(PostsContext);
+  const { popularPosts, posts, likePost, sharePost, comments, postComment, fetchComments, postView, isLoading } = useContext(PostsContext);
+  console.log(posts);
   const { isLogin, user } = useContext(userContext);
   const { ad } = useContext(AdContext);
   const { id } = useParams();
@@ -32,8 +24,9 @@ const PostDetail = () => {
   const [commentContent, setCommentContent] = useState("");
   const [visibleComments, setVisibleComments] = useState(2);
 
-  const post = posts.find((p) => p._id === id);
-  const relatedPosts = posts.filter((p) => p._id !== id && p.category.name === post?.category?.name).slice(0, 6);
+  const allPosts = [...posts, ...popularPosts];
+  const post =  allPosts.find((p) => p._id === id);
+  const relatedPosts = allPosts.filter((p) => p._id !== id && p.category.name === post?.category?.name).slice(0, 6);
 
 
   useEffect(() => {
