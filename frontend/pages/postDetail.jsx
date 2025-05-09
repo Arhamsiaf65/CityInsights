@@ -22,7 +22,7 @@ import { userContext } from "../context/userContext";
 import { AdContext } from "../context/addContext";
 
 const PostDetail = () => {
-  const { posts, likePost, sharePost, comments, postComment, fetchComments, isLoading } = useContext(PostsContext);
+  const { posts, likePost, sharePost, comments, postComment, fetchComments, postView, isLoading } = useContext(PostsContext);
   const { isLogin, user } = useContext(userContext);
   const { ad } = useContext(AdContext);
   const { id } = useParams();
@@ -35,9 +35,11 @@ const PostDetail = () => {
   const post = posts.find((p) => p._id === id);
   const relatedPosts = posts.filter((p) => p._id !== id && p.category.name === post?.category?.name).slice(0, 6);
 
+
   useEffect(() => {
     fetchComments(id);
-  }, [id]);
+    postView(id);
+  }, []);
 
   if (isLoading || !post) {
     return (
@@ -242,50 +244,46 @@ const PostDetail = () => {
 
         {/* Comments Section */}
         <div className="mt-10 border-t pt-6">
-<h2 className="text-xl font-semibold text-gray-800 mb-4">Comments</h2>
-{comments.length === 0 ? (
-  <p className="text-gray-500">No comments yet. Be the first to comment!</p>
-) : (
-  <div className="space-y-4">
-    
-
-    {Array.isArray(comments) && comments.length === 0 ? (
-<p className="text-gray-500">No comments yet. Be the first to comment!</p>
-) : (
-<div className="space-y-4">
-{Array.isArray(comments) && comments.slice(0, visibleComments).map((comment) => (
-<div key={comment._id} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
-<img
-src={comment.user.avatar || defaultAvatar}
-alt={comment.user.name}
-className="w-10 h-10 rounded-full object-cover"
-/>
-<div>
-<div className="font-semibold text-gray-800">{comment.user.name}</div>
-<p className="text-gray-700 mt-1">{comment.content}</p>
-<div className="text-xs text-gray-400 mt-1">
- {new Date(comment.createdAt).toLocaleString()}
-</div>
-</div>
-</div>
-
-))}
-</div>
-)}
-
-    {visibleComments < comments.length && (
-      <div className="flex justify-center">
-        <button
-          onClick={() => setVisibleComments((prev) => prev + 3)}
-          className="mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition"
-        >
-          Load More Comments
-        </button>
-      </div>
-    )}
-  </div>
-)}
-</div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Comments</h2>
+          {comments.length === 0 ? (
+            <p className="text-gray-500">No comments yet. Be the first to comment!</p>
+          ) : (
+            <div className="space-y-4">
+              {Array.isArray(comments) && comments.length === 0 ? (
+                <p className="text-gray-500">No comments yet. Be the first to comment!</p>
+              ) : (
+                <div className="space-y-4">
+                  {Array.isArray(comments) && comments.slice(0, visibleComments).map((comment) => (
+                    <div key={comment._id} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
+                      <img
+                        src={comment.user.avatar || defaultAvatar}
+                        alt={comment.user.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <div className="font-semibold text-gray-800">{comment.user.name}</div>
+                        <p className="text-gray-700 mt-1">{comment.content}</p>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {new Date(comment.createdAt).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {visibleComments < comments.length && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setVisibleComments((prev) => prev + 3)}
+                    className="mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition"
+                  >
+                    Load More Comments
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Add Comment */}
         <div className="mt-10 border-t pt-6">
@@ -313,3 +311,4 @@ className="w-10 h-10 rounded-full object-cover"
 };
 
 export default PostDetail;
+

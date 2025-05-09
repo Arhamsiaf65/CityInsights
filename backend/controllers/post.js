@@ -1,34 +1,94 @@
 // routes/post.js
 import express from 'express';
-import { requireRole, verifyToken } from '../services/auth.js';
+import { requireRole, verifyToken , optionalAuth} from '../services/auth.js';
 import post from '../models/post.js';
+import User from '../models/user.js';
 import Category from '../models/category.js';
 import { imageUpload } from '../cloudinary/uploadImage.js';
 import multer from 'multer';
 import mongoose from 'mongoose';
+import { updateUserInterests } from './functions.js';
 
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-router.get('/fetch', async (req, res) => {
+router.get('/fetch', optionalAuth, async (req, res) => {
   try {
     const skip = parseInt(req.query.skip) || 0;
     const limit = parseInt(req.query.limit) || 10;
 
-    const posts = await post.find({})
-      .sort({ createdAt: -1 }) // Newest posts first
-      .skip(skip)
-      .limit(limit)
-      .populate('author', 'name avatar')
-      .populate('category', 'name');
+    let allPosts = [];
 
-    res.json(posts);
+    // STEP 1: Get popular post IDs to exclude
+    const popularPosts = await post.find({})
+      .sort({ likes: -1, views: -1, shares: -1 })
+      .limit(10)
+      .select('_id'); // Only fetch IDs
+
+    const popularPostIds = popularPosts.map(p => p._id.toString());
+
+    if (req.user && req.user.interests) {
+      const { interests } = req.user;
+
+      const preferenceQuery = {
+        $or: [
+          { category: { $in: interests.categories } },
+          { tags: { $in: interests.tags } },
+          { author: { $in: interests.authors } }
+        ],
+        _id: { $nin: popularPostIds } // Exclude popular posts
+      };
+
+      const preferredPosts = await post.find(preferenceQuery);
+
+      const preferredPostIds = preferredPosts.map(p => p._id.toString());
+
+      const otherPosts = await post.find({
+        _id: { $nin: [...preferredPostIds, ...popularPostIds] }
+      })
+        .sort({ createdAt: -1 })
+        .populate('author', 'name avatar')
+        .populate('category', 'name');
+
+      allPosts = [...preferredPosts, ...otherPosts];
+    } else {
+      allPosts = await post.find({ _id: { $nin: popularPostIds } }) // Exclude popular
+        .sort({ createdAt: -1 })
+        .populate('author', 'name avatar')
+        .populate('category', 'name');
+    }
+
+    const paginatedPosts = allPosts.slice(skip, skip + limit);
+    res.json(paginatedPosts);
   } catch (error) {
     console.error('Error fetching posts:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+
+
+
+
+
+// Get popular posts
+router.get('/popular', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+
+    const popularPosts = await post.find({})
+      .sort({ likes: -1, views: -1, shares: -1 }) 
+      .limit(limit)
+      .populate('author', 'name avatar')
+      .populate('category', 'name');
+
+    res.json(popularPosts);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch popular posts', error: error.message });
+  }
+});
+
 
 router.post('/create', verifyToken, requireRole(['admin', 'publisher', 'editor'])
   , upload.array('images'), async (req, res) => {
@@ -41,7 +101,6 @@ router.post('/create', verifyToken, requireRole(['admin', 'publisher', 'editor']
         return res.status(400).json({ message: 'Invalid or non-existent category' });
       }
 
-      console.log(featured)
       const newPost = new post({
         title,
         content,
@@ -226,16 +285,18 @@ router.get('/my-posts', verifyToken, requireRole('author'), async (req, res) => 
 // Increment views
 router.post('/:id/view', async (req, res) => {
   try {
-    const post = await post.findByIdAndUpdate(
+    const Post = await post.findByIdAndUpdate(
       req.params.id,
       { $inc: { views: 1 } },
       { new: true }
     );
-    res.json({ views: post.views });
+    res.json({ views: Post.views });
   } catch (error) {
-    res.status(500).json({ message: "Error incrementing view", error });
+    console.error('Error:', error);  // Log the error to the console
+    res.status(500).json({ message: "Error incrementing view", error: error.message });
   }
 });
+
 
 // Like or unlike a post
 router.post('/:id/like', verifyToken,async (req, res) => {
@@ -244,19 +305,17 @@ router.post('/:id/like', verifyToken,async (req, res) => {
     if (!postDoc) return res.status(404).json({ message: "post not found" });
 
     const { userId } = req.body;
-    console.log("userId", userId);
 
     // 🛠 Correct way
     const hasLiked = postDoc.likedBy.includes(userId);
-    console.log("has liked", hasLiked);
 
     if (hasLiked) {
       postDoc.likedBy.pull(userId);
       postDoc.likes--;
-      console.log("Disliked");
     } else {
       postDoc.likedBy.push(userId);
       postDoc.likes++;
+    await updateUserInterests(req.user.id, req.params.id);
       console.log("Liked");
     }
 

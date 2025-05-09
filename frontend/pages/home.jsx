@@ -3,12 +3,15 @@ import Navbar from "../components/navBar";
 import { Search } from "lucide-react";
 import PostCard from "../components/postCard";
 import { PostsContext } from "../context/postContext";
+import { userContext } from "../context/userContext";
 import { CategoriesContext } from "../context/categoriesContext";
-import { FaCheck, FaFilter } from "react-icons/fa";
+import { FaCheck, FaCross, FaFilter, FaCog } from "react-icons/fa";
 import { FiXCircle } from "react-icons/fi";
+import ScrollToTop from "../components/scrollToTop";
 
 function Home() {
-  const { posts,fetchPosts, isLoading } = useContext(PostsContext);
+  const { posts, fetchPosts, isLoading, popularPosts, loadingMore } = useContext(PostsContext);
+  const {isLogin} = useContext(userContext);
   const { categories } = useContext(CategoriesContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -16,21 +19,14 @@ function Home() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
 
-  useEffect(()=> {
-    fetchPosts()
-  })
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
   const filterSidebarRef = useRef(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (filterSidebarRef.current && !filterSidebarRef.current.contains(event.target)) {
-        setIsFilterOpen(false);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
+
+
 
   const handleCategoryToggle = (categoryName) => {
     setSelectedCategories((prevSelected) =>
@@ -38,7 +34,9 @@ function Home() {
         ? prevSelected.filter((cat) => cat !== categoryName)
         : [...prevSelected, categoryName]
     );
+    window.scrollTo({ top: 0, behavior: "smooth" }); // ✅
   };
+  
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
@@ -46,7 +44,7 @@ function Home() {
     setShowFeaturedOnly(false);
   };
 
-  const filteredPosts = posts
+  const filteredPosts = popularPosts
     .filter((post) => {
       if (searchTerm.trim() === "") return true;
       const lowerSearch = searchTerm.toLowerCase();
@@ -68,15 +66,27 @@ function Home() {
       return 0;
     });
 
+
+
   return (
-    <div className="bg-gray-50 min-h-screen p-4 sm:p-6">
+    <div className="bg-gray-50 min-h-screen p-4 sm:p-6 relative">
+      {/* Sidebar Toggle Button (Desktop Left Icon) */}
+      <button
+        onClick={() => setIsFilterOpen(!isFilterOpen)}
+        className={`hidden lg:flex fixed  left-2 z-50 transform -translate-y-1/2 
+    bg-blue-600 text-white p-3 rounded-full shadow transition-transform duration-300 
+  animate-spin ${isFilterOpen ? "top-[0.8]" : "top-1/2"}`}
+      >
+        <FaCog size={20} />
+      </button>
+
       {/* Mobile Top Bar */}
       <div className="flex justify-between items-center mb-6 lg:hidden">
         <h2 className="text-2xl font-bold text-gray-800">Explore Posts</h2>
         <button
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() => {
             setIsFilterOpen(!isFilterOpen);
+            console.log("filter state", isFilterOpen);
           }}
           className={`flex items-center space-x-2 px-4 py-2 rounded-lg shadow ${selectedCategories.length > 0 || sortOption || showFeaturedOnly
               ? "bg-blue-600 text-white"
@@ -88,38 +98,45 @@ function Home() {
         </button>
       </div>
 
-      {/* Main Layout Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      {/* Grid Layout */}
+      <div className={` ${isFilterOpen ? "grid grid-cols-1 lg:grid-cols-[25%_1fr] gap-8" : " md:grid-cols-4 lg:grid-cols-4"} gap-8`}>
         {/* Sidebar */}
         <div
-  ref={filterSidebarRef}
-  className={`bg-white p-5 rounded-r-2xl shadow-lg z-10 overflow-y-auto
+          ref={filterSidebarRef}
+          className={`bg-white p-5 rounded-2xl shadow-lg overflow-y-auto z-10
     w-[75%] md:w-full 
-    md:sticky md:top-28 md:self-start
-    ${isFilterOpen ? "fixed top-16 left-0 h-[calc(100%-4rem)] w-64 transition-transform duration-300 ease-in-out z-40" : "hidden lg:block"}
-  `}
->
-
-
+    ${isFilterOpen ? "fixed top-16 left-0 h-[calc(100%-4rem)] w-64 transition-transform duration-300 ease-in-out z-40" : "hidden"}
+    md:sticky md:top-20 md:self-start md:h-auto md:z-10`}
+        >
+          {/* Close Button - Mobile Only */}
+          <button
+            onClick={() => setIsFilterOpen(false)}
+            className="absolute top-6 right-4 text-gray-500 hover:text-black md:hidden"
+          >
+            <FiXCircle size={20} />
+          </button>
 
           {/* Filters Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-800">Filters</h2>
-            <button
-              onClick={clearAllFilters}
-              className="flex items-center gap-1 px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 text-xs font-semibold"
-            >
-              <FaFilter size={14} /> Clear
-            </button>
-          </div>
 
+          </div>
+          <button
+            onClick={clearAllFilters}
+            className="flex items-center mb-3 gap-1 px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 text-xs font-semibold"
+          >
+            <FaFilter size={14} /> Clear
+          </button>
           {/* Active Filters Tags */}
           {(selectedCategories.length > 0 || sortOption || showFeaturedOnly) && (
             <div className="flex flex-wrap gap-2 mb-6">
               {selectedCategories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => handleCategoryToggle(cat)}
+                  onClick={() => {
+                    handleCategoryToggle(cat);
+                    setIsFilterOpen(false);
+                  }}
                   className="flex items-center gap-1 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs hover:bg-blue-200"
                 >
                   {cat} <FiXCircle size={12} />
@@ -127,7 +144,10 @@ function Home() {
               ))}
               {sortOption && (
                 <button
-                  onClick={() => setSortOption("")}
+                  onClick={() => {
+                    setSortOption("");
+                    setIsFilterOpen(false);
+                  }}
                   className="flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs hover:bg-green-200"
                 >
                   {sortOption === "mostLiked" ? "Most Liked" : sortOption === "newest" ? "Newest" : "Oldest"}
@@ -136,7 +156,10 @@ function Home() {
               )}
               {showFeaturedOnly && (
                 <button
-                  onClick={() => setShowFeaturedOnly(false)}
+                  onClick={() => {
+                    setShowFeaturedOnly(false);
+                    setIsFilterOpen(false);
+                  }}
                   className="flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs hover:bg-yellow-200"
                 >
                   Featured <FiXCircle size={12} />
@@ -152,7 +175,10 @@ function Home() {
               {categories.map((cat) => (
                 <button
                   key={cat._id}
-                  onClick={() => handleCategoryToggle(cat.name)}
+                  onClick={() => {
+                    handleCategoryToggle(cat.name);
+                    setIsFilterOpen(false);
+                  }}
                   className={`px-4 py-2 rounded-full border text-xs font-medium transition-all ${selectedCategories.includes(cat.name)
                       ? "bg-blue-600 text-white border-blue-600 shadow"
                       : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
@@ -170,7 +196,10 @@ function Home() {
               <input
                 type="checkbox"
                 checked={showFeaturedOnly}
-                onChange={() => setShowFeaturedOnly((prev) => !prev)}
+                onChange={() => {
+                  setShowFeaturedOnly((prev) => !prev);
+                  setIsFilterOpen(false);
+                }}
               />
               Show Featured Posts Only
             </label>
@@ -203,7 +232,10 @@ function Home() {
                     name="sortOption"
                     value={option.value}
                     checked={sortOption === option.value}
-                    onChange={(e) => setSortOption(e.target.value)}
+                    onChange={(e) => {
+                      setSortOption(e.target.value);
+                      setIsFilterOpen(false);
+                    }}
                     className="hidden"
                   />
                 </label>
@@ -212,15 +244,16 @@ function Home() {
           </div>
         </div>
 
+
+
         {/* Main Content */}
-        <div className=" lg:col-span-3 px-2 bg-white rounded-2xl sm:px-6">
-          <div className="sticky top-18 z-20 bg-white py-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
-
+        {/* show here the featured posts only */}
+        <div className=" px-2 bg-white rounded-2xl sm:px-6">
+          <div className="sticky z-20 bg-white py-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-start relative drop-shadow-md ">
-              TOP INSIGHTS
-              <span className="block w-24 sm:w-82 h-[2px] bg-blue-900 mt-3 rounded-full shadow-sm"></span>
+              TRENDING
+              <span className="block w-24 sm:w-64 h-[2px] bg-blue-900 mt-3 rounded-full shadow-sm"></span>
             </h1>
-
 
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -235,41 +268,108 @@ function Home() {
           </div>
 
           {/* Posts Section */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {isLoading ? (
-  Array.from({ length: 6 }).map((_, idx) => (
-    <div
-      key={idx}
-      className="animate-pulse bg-white p-4 rounded-xl shadow-md space-y-4"
-    >
-      <div className="h-40 bg-gray-300 rounded-lg" />
-      <div className="h-4 bg-gray-300 rounded w-3/4" />
-      <div className="h-4 bg-gray-200 rounded w-1/2" />
-    </div>
-  ))
-) : filteredPosts.length > 0 ? (
-  filteredPosts.map((post) => (
-    <div key={post._id} className="mb-4 break-inside-avoid">
-      <PostCard
-        id={post._id}
-        image={post.images?.[0]}
-        author={post.author}
-        title={post.title}
-        likes={post.likes}
-        description={post.content.slice(0, 100) + "..."}
-        link={`/post/${post._id}`}
-        details={[post.content]}
-      />
-    </div>
-  ))
-) : (
-  <div className="text-center text-gray-400 text-2xl py-20 col-span-full">
-    No posts found matching your filters.
-  </div>
-)}
+          <div className={`grid grid-cols-1 ${isFilterOpen ? 'sm:grid-cols-2 md:grid-cols-3' : 'sm:grid-cols-3 md:grid-cols-4'} gap-6`}>
 
+            {isLoading ? (
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="animate-pulse bg-white p-4 rounded-xl shadow-md space-y-4">
+                  <div className="h-40 bg-gray-300 rounded-lg" />
+                  <div className="h-4 bg-gray-300 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                </div>
+              ))
+            ) : filteredPosts.length > 0 ? (
+              filteredPosts.map((post) => (
+                <div key={post._id} className="mb-4">
+                  <PostCard
+                    id={post._id}
+                    image={post.images?.[0]}
+                    author={post.author}
+                    title={post.title}
+                    likes={post.likes}
+                    description={post.content.slice(0, 100) + "..."}
+                    link={`/post/${post._id}`}
+                    details={[post.content]}
+                  />
+                </div>
+              ))
+            ) : (
+              popularPosts.map((post) => (
+                <div key={post._id} className="mb-4">
+                  <PostCard
+                    id={post._id}
+                    image={post.images?.[0]}
+                    author={post.author}
+                    title={post.title}
+                    likes={post.likes}
+                    description={post.content.slice(0, 100) + "..."}
+                    link={`/post/${post._id}`}
+                    details={[post.content]}
+                  />
+                </div>
+              ))
+            )}
+
+  
           </div>
+
+
+
+
+
+
+          {/* Main Content */}
+        {   <div className="lg:col-span-4 px-2 bg-white rounded-2xl sm:px-6">
+            <div className=" bg-white py-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-start relative drop-shadow-md ">
+                FOR YOU
+                <span className="block w-24 sm:w-58 h-[2px] bg-blue-900 mt-3 rounded-full shadow-sm"></span>
+              </h1>
+
+            </div>
+
+            {/* Posts Section */}
+            <div className={` grid grid-cols-1  gap-6  ${isFilterOpen ? "sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}` }>
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="animate-pulse bg-white p-4 rounded-xl shadow-md space-y-4"
+                  >
+                    <div className="h-40 bg-gray-300 rounded-lg" />
+                    <div className="h-4 bg-gray-300 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  </div>
+                ))
+              ) : posts.length > 0 ? (
+                posts.map((post) => (
+                  <div key={post._id} className="mb-4  break-inside-avoid">
+                    <PostCard
+                      id={post._id}
+                      image={post.images?.[0]}
+                      author={post.author}
+                      title={post.title}
+                      likes={post.likes}
+                      description={post.content.slice(0, 100) + "..."}
+                      link={`/post/${post._id}`}
+                      details={[post.content]}
+                    />
+                  </div>
+                ))
+
+              ) : (
+                <div className="text-center text-gray-400 text-2xl py-20 col-span-full">
+                  {/* No posts found matching your filters. */}
+                </div>
+              )}
+            </div>
+          </div>}
         </div>
+
+
+
+
+
       </div>
     </div>
   );

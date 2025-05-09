@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import User from '../models/user.js';
 
 export const setUser = (user) => {
     return jwt.sign({
@@ -12,14 +13,12 @@ export const setUser = (user) => {
 
 export const verifyToken = (req, res, next) => {
     const token = req.header("Authorization")?.split(" ")[1];;
-    console.log(token);
     if (!token) {
       return res.status(401).json({ message: "Access Denied. No token provided." });
     }
   
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decoded);  // Debug: print the decoded token to check if `id` is included
 
         req.user = decoded;  // Attach decoded user data to the request object
         next();
@@ -39,5 +38,25 @@ export const verifyToken = (req, res, next) => {
   
       next();
     };
+  };
+
+  export const optionalAuth = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+  
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+        if (user) {
+          req.user = user; // Attach user to request if token is valid
+        }
+      } catch (err) {
+        console.warn('Invalid or expired token');
+        // Proceed without attaching user
+      }
+    }
+  
+    next(); // Always continue
   };
   

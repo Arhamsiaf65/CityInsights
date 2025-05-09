@@ -23,6 +23,11 @@ const UserSchema = new mongoose.Schema({
     enum: ['normal','applied','pending', 'approved', 'rejected'],
     default: 'normal'
   },
+  interests: {
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
+    tags: [String],
+    authors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  },  
   createdAt:  { type: Date, default: Date.now }
 });
 
