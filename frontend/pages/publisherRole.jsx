@@ -9,20 +9,24 @@ function PublisherRole() {
     requestedRole: 'publisher',
     bio: '',
     portfolio: '',
-    contact: ''
+    contact: '',
+    cnicFront: null,
+    cnicBack: null,
+    facePhoto: null,
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value, files } = e.target;
+    if (files) {
+      setFormData(prev => ({ ...prev, [name]: files[0] }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { requestedRole, bio, portfolio, contact } = formData;
-    await applyPublisherRole(requestedRole, bio, portfolio, contact);
+    await applyPublisherRole(formData);
   };
 
   return (
@@ -33,7 +37,7 @@ function PublisherRole() {
           Submit your details below to apply for publisher privileges and share your stories with the community.
         </p>
 
-        <form className="form" onSubmit={handleSubmit}>
+        <form className="form" onSubmit={handleSubmit} encType="multipart/form-data">
           <div className="form-group">
             <label htmlFor="bio">Bio</label>
             <textarea
@@ -41,7 +45,7 @@ function PublisherRole() {
               name="bio"
               value={formData.bio}
               onChange={handleChange}
-              placeholder="Tell us about yourself, your experience or passion for news..."
+              placeholder="Tell us about yourself..."
               required
               rows="4"
             />
@@ -55,7 +59,7 @@ function PublisherRole() {
               name="portfolio"
               value={formData.portfolio}
               onChange={handleChange}
-              placeholder="Link to your articles or personal site"
+              placeholder="Link to your articles or site"
             />
           </div>
 
@@ -67,19 +71,33 @@ function PublisherRole() {
               name="contact"
               value={formData.contact}
               onChange={handleChange}
-              placeholder="Email or phone"
+              placeholder="Phone or email"
               required
             />
           </div>
 
-          <button type="submit" className="form-submit-btn">
-            Submit Application
-          </button>
+          <div className="form-group">
+            <label>CNIC Front Photo</label>
+            <input type="file" name="cnicFront" accept="image/*" onChange={handleChange} required />
+          </div>
+
+          <div className="form-group">
+            <label>CNIC Back Photo</label>
+            <input type="file" name="cnicBack" accept="image/*" onChange={handleChange} required />
+          </div>
+
+          <div className="form-group">
+            <label>Face Photo (Selfie)</label>
+            <input type="file" name="facePhoto" accept="image/*" onChange={handleChange} required />
+          </div>
+
+          <button type="submit" className="form-submit-btn">Submit Application</button>
         </form>
       </div>
     </StyledWrapper>
   );
 }
+
 
 const StyledWrapper = styled.div`
   min-height: 100vh;

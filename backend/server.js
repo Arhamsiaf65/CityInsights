@@ -9,6 +9,7 @@ import categoryroutes from './controllers/category.js';
 import commentroutes from './controllers/comment.js';
 import contactroutes from './controllers/contact.js';
 import addroutes from './controllers/add.js';
+import chatroutes from './controllers/chatboat.js'
 dotenv.config();
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/categories', categoryroutes)
 app.use('/comments', commentroutes)
 app.use('/contact', contactroutes)
 app.use('/add', addroutes)
+app.use('/chat', chatroutes)
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

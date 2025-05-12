@@ -7,6 +7,7 @@ import 'dotenv/config.js';
 import jwt from "jsonwebtoken";
 import { setUser, verifyToken } from "../services/auth.js";
 import multer from "multer";
+import PublisherApplication from "../models/publisherApplications.js";
 
 
 const router = express.Router();
@@ -195,65 +196,94 @@ router.put('/profile/update', verifyToken, async (req, res) => {
 
 // apply for publisher role
 // PATCH /users/apply-publisher
-router.patch('/apply-publisher', verifyToken, async (req, res) => {
-  const { requestedRole, bio, portfolio, contact } = req.body;
-
+const publisherUpload = upload.fields([
+  { name: 'cnicFront', maxCount: 1 },
+  { name: 'cnicBack', maxCount: 1 },
+  { name: 'facePhoto', maxCount: 1 },
+]);
+router.patch('/apply-publisher', verifyToken, publisherUpload, async (req, res) => {
   try {
-    // Check if the user has already applied
-    const user = await User.findById(req.user.id);
-    
-    if (['applied', 'pending', 'approved'].includes(user.verificationStatus)) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already applied or your application is under review."
-      });
+    const { requestedRole, bio, portfolio, contact } = req.body;
+    const userId = req.user.id;
+
+    if (!['publisher'].includes(requestedRole)) {
+      return res.status(400).json({ message: "Invalid role request." });
     }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (['applied', 'pending', 'approved'].includes(user.verificationStatus)) {
+      return res.status(400).json({ message: "Application already submitted or approved." });
+    }
+
     
 
-    // Update the user's role and status
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user.id,
-      {
-        requestedRole,
-        bio,
-        portfolio,
-        contact,
-        verificationStatus: 'applied'  // Set status to 'applied'
-      },
-      { new: true }
-    );
+    const files = req.files;
+    if (!files?.cnicFront || !files?.cnicBack || !files?.facePhoto) {
+      return res.status(400).json({ message: "All 3 images are required." });
+    }
+
+    // Upload images to Cloudinary
+    const [cnicFrontUrl, cnicBackUrl, facePhotoUrl] = await Promise.all([
+      imageUpload(files.cnicFront[0]),
+      imageUpload(files.cnicBack[0]),
+      imageUpload(files.facePhoto[0]),
+    ]);
+
+    // Save application record
+    const application = new PublisherApplication({
+      user: userId,
+      cnicFront: cnicFrontUrl,
+      cnicBack: cnicBackUrl,
+      facePhoto: facePhotoUrl,
+    });
+
+    await application.save();
+
+    // Update user info
+    user.requestedRole = requestedRole;
+    user.bio = bio;
+    user.portfolio = portfolio;
+    user.contact = contact;
+    user.verificationStatus = 'applied';
+    await user.save();
 
     res.status(200).json({
       success: true,
-      message: "Role application submitted with verification details",
-      user: {
-        name: updatedUser.name,
-        email: updatedUser.email,
-        requestedRole: updatedUser.requestedRole,
-        bio: updatedUser.bio,
-        portfolio: updatedUser.portfolio,
-        contact: updatedUser.contact,
-        verificationStatus: updatedUser.verificationStatus  // Send updated status
-      }
+      message: "Publisher application submitted",
+      applicationId: application._id,
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to apply for role", error: error.message });
+    console.error("Apply Publisher Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to apply for publisher role",
+      error: error.message,
+    });
   }
 });
 
-router.get('/publisher-requests', verifyToken, async (req, res) => {
+router.get('/publisher-requests', async (req, res) => {
   try {
-    const publishers = await User.find({ requestedRole: 'publisher' });
+    const applications = await PublisherApplication.find({
+      status: { $in: ['applied', 'pending'] }
+    }).populate('user', '-password -interests');
 
     res.status(200).json({
       success: true,
-      total: publishers.length,
-      users: publishers
+      total: applications.length,
+      applications
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch publisher requests', error: error.message });
+    res.status(500).json({
+      message: 'Failed to fetch publisher requests',
+      error: error.message
+    });
   }
 });
+
+
 
 
 

@@ -11,15 +11,15 @@ import ScrollToTop from "../components/scrollToTop";
 import { AdContext } from "../context/addContext";
 
 function Home() {
-  const { posts, fetchPosts, isLoading, popularPosts, loadingMore , searchPosts} = useContext(PostsContext);
-  const {isLogin} = useContext(userContext);
+  const { posts, fetchPosts, isLoading, popularPosts, loadingMore, searchPosts, hasMore} = useContext(PostsContext);
+  const { isLogin } = useContext(userContext);
   const { categories } = useContext(CategoriesContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [sortOption, setSortOption] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
-  const {ad} = useContext(AdContext);
+  const { ad } = useContext(AdContext);
 
   useEffect(() => {
     fetchPosts();
@@ -27,14 +27,14 @@ function Home() {
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
-    
-        searchPosts(searchTerm);
-      
+
+      searchPosts(searchTerm);
+
     }, 500); // debounce to avoid spamming search
-  
+
     return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
-  
+
   const filterSidebarRef = useRef(null);
 
 
@@ -48,7 +48,7 @@ function Home() {
     );
     window.scrollTo({ top: 0, behavior: "smooth" }); // ✅
   };
-  
+
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
@@ -101,8 +101,8 @@ function Home() {
             console.log("filter state", isFilterOpen);
           }}
           className={`flex items-center space-x-2 px-4 py-2 rounded-lg shadow ${selectedCategories.length > 0 || sortOption || showFeaturedOnly
-              ? "bg-blue-600 text-white"
-              : "bg-white text-gray-700 border border-blue-600"
+            ? "bg-blue-600 text-white"
+            : "bg-white text-gray-700 border border-blue-600"
             } hover:bg-blue-700 transition`}
         >
           <FaFilter />
@@ -192,8 +192,8 @@ function Home() {
                     setIsFilterOpen(false);
                   }}
                   className={`px-4 py-2 rounded-full border text-xs font-medium transition-all ${selectedCategories.includes(cat.name)
-                      ? "bg-blue-600 text-white border-blue-600 shadow"
-                      : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
+                    ? "bg-blue-600 text-white border-blue-600 shadow"
+                    : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400"
                     }`}
                 >
                   {cat.name}
@@ -229,8 +229,8 @@ function Home() {
                 <label
                   key={option.value}
                   className={`flex items-center justify-between p-2 rounded-xl border bg-white/70 backdrop-blur-md shadow cursor-pointer transition ${sortOption === option.value
-                      ? "border-blue-500 shadow-lg scale-[1.01]"
-                      : "border-gray-300 hover:border-blue-400 hover:shadow-md"
+                    ? "border-blue-500 shadow-lg scale-[1.01]"
+                    : "border-gray-300 hover:border-blue-400 hover:shadow-md"
                     }`}
                 >
                   <span className="text-xs font-medium text-gray-900">{option.label}</span>
@@ -322,7 +322,10 @@ function Home() {
               ))
             )}
 
-  
+           
+
+
+
           </div>
 
 
@@ -332,106 +335,121 @@ function Home() {
 
           {/* Main Content */}
           <div className="lg:col-span-4 px-2 bg-white rounded-2xl sm:px-6">
-  <div className="bg-white py-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
-    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-start relative drop-shadow-md">
-      FOR YOU
-      <span className="block w-24 sm:w-58 h-[2px] bg-blue-900 mt-3 rounded-full shadow-sm"></span>
-    </h1>
-  </div>
+            <div className="bg-white py-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 text-start relative drop-shadow-md">
+                FOR YOU
+                <span className="block w-24 sm:w-58 h-[2px] bg-blue-900 mt-3 rounded-full shadow-sm"></span>
+              </h1>
+            </div>
 
-  {/* Posts Section */}
-  <div
-  className={`grid gap-6 ${
-    isFilterOpen
-      ? 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-      : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
-  }`}
+            {/* Posts Section */}
+            <div
+              className={`grid gap-6 ${isFilterOpen
+                ? 'grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+                }`}
 
 
->
-  {isLoading ? (
-    Array.from({ length: 6 }).map((_, idx) => (
-      <div
-        key={idx}
-        className="animate-pulse bg-white p-4 rounded-xl shadow-md space-y-4"
-      >
-        <div className="h-40 bg-gray-300 rounded-lg" />
-        <div className="h-4 bg-gray-300 rounded w-3/4" />
-        <div className="h-4 bg-gray-200 rounded w-1/2" />
-      </div>
-    ))
-  ) : posts.length > 0 ? (
-    posts.map((post, index) => (
-      <React.Fragment key={post._id}>
-        {/* Insert ad after the 3rd post */}
-        {index === 4 && (
-        <div className="col-span-full">
-        <div className="relative bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-50 border border-yellow-200 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row items-center gap-6 overflow-hidden">
-          <img
-            src={ad.images}
-            alt="Ad"
-            className="w-[65%] md:w-1/2 h-64 object-cover rounded-xl shadow-md"
-          />
-          <div className="flex-1">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
-              {ad.title}
-            </h2>
-            <p className="text-base text-gray-600 mb-3">
-              {ad.description}
-            </p>
-            <p className="text-sm text-gray-500 mb-2">
-              <strong>Location:</strong> {ad.address}
-            </p>
-            {ad.link && (
-              <a
-                href={ad.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block mt-2 px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 transition"
-              >
-                Visit Website
-              </a>
+            >
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="animate-pulse bg-white p-4 rounded-xl shadow-md space-y-4"
+                  >
+                    <div className="h-40 bg-gray-300 rounded-lg" />
+                    <div className="h-4 bg-gray-300 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  </div>
+                ))
+              ) : posts.length > 0 ? (
+                posts.map((post, index) => (
+                  <React.Fragment key={post._id}>
+                    {/* Insert ad after the 3rd post */}
+                    {index === 4 && (
+                      <div className="col-span-full">
+                        <div className="relative bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-50 border border-yellow-200 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row items-center gap-6 overflow-hidden">
+                          <img
+                            src={ad.images}
+                            alt="Ad"
+                            className="w-[65%] md:w-1/2 h-64 object-cover rounded-xl shadow-md"
+                          />
+                          <div className="flex-1">
+                            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                              {ad.title}
+                            </h2>
+                            <p className="text-base text-gray-600 mb-3">
+                              {ad.description}
+                            </p>
+                            <p className="text-sm text-gray-500 mb-2">
+                              <strong>Location:</strong> {ad.address}
+                            </p>
+                            {ad.link && (
+                              <a
+                                href={ad.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block mt-2 px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 transition"
+                              >
+                                Visit Website
+                              </a>
+                            )}
+                            <p className="mt-4 text-xs text-gray-400 italic">
+                              Sponsored by Insights
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                    )}
+
+                    <div className="break-inside-avoid">
+                      <PostCard
+                        id={post._id}
+                        image={post.images?.[0]}
+                        author={post.author}
+                        title={post.title}
+                        likes={post.likes}
+                        description={post.content.slice(0, 100) + '...'}
+                        link={`/post/${post._id}`}
+                        details={[post.content]}
+                      />
+                    </div>
+                  </React.Fragment>
+                ))
+              ) : (
+                <div className="text-center text-gray-400 text-2xl py-20 col-span-full">
+                  No posts found matching your filters.
+                </div>
+              )}
+
+
+
+
+            </div>
+
+
+            {loadingMore && (
+              <div className="flex justify-center py-10">
+                <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
             )}
-            <p className="mt-4 text-xs text-gray-400 italic">
-              Sponsored by Insights
-            </p>
+
+{hasMore && !isLoading && (
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={() => fetchPosts()}
+                  disabled={loadingMore}
+                  className={`px-6 py-2 text-white font-semibold rounded-lg shadow-md transition ${loadingMore
+                      ? 'bg-blue-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                >
+                  {loadingMore ? 'Loading...' : 'Load More'}
+                </button>
+              </div>
+            )}
           </div>
-        </div>
-      </div>
-      
-        )}
-
-        <div className="break-inside-avoid">
-          <PostCard
-            id={post._id}
-            image={post.images?.[0]}
-            author={post.author}
-            title={post.title}
-            likes={post.likes}
-            description={post.content.slice(0, 100) + '...'}
-            link={`/post/${post._id}`}
-            details={[post.content]}
-          />
-        </div>
-      </React.Fragment>
-    ))
-  ) : (
-    <div className="text-center text-gray-400 text-2xl py-20 col-span-full">
-      No posts found matching your filters.
-    </div>
-  )}
-
- 
-</div>
-
-
-{loadingMore && (
-    <div className="flex justify-center py-10">
-      <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  )}
-
-</div>
 
         </div>
 
@@ -440,7 +458,10 @@ function Home() {
 
 
       </div>
+
+
     </div>
+
   );
 }
 

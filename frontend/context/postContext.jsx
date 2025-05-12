@@ -9,16 +9,45 @@ export const PostsContext = createContext();
 export function PostsProvider({ children }) {
   const [posts, setPosts] = useState([]);
   const [popularPosts, setPopularPosts] = useState([]);
+  const [categoryPosts, setCategoryPosts] = useState([]);
   const [comments, setComments] = useState({});
   const [skip, setSkip] = useState(0);
   const [loading, setLoading] = useState(true); // Initial loading (first fetch)
   const [loadingMore, setLoadingMore] = useState(false); // For pagination spinner
+  const [loadingCategoryPost, setLoadingCategoryPost] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_BASE_URL;
   const isFetchingRef = useRef(false);
+  const loadTriggerRef = useRef();
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isFetchingRef.current) {
+          fetchPosts(categorySlug, search);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 1.0,
+      }
+    );
+  
+    if (loadTriggerRef.current) {
+      observer.observe(loadTriggerRef.current);
+    }
+  
+    return () => {
+      if (loadTriggerRef.current) {
+        observer.unobserve(loadTriggerRef.current);
+      }
+    };
+  }, [loadTriggerRef, hasMore]);
+  
 
   const fetchPosts = async (categorySlug, search = "") => {
     const token = Cookies.get("token");
@@ -83,15 +112,17 @@ export function PostsProvider({ children }) {
   
 
   const fetchCategoryPosts = async (categorySlug, search = "") => {
-    try {
+    setLoadingCategoryPost(true);
+        try {
       const response = await fetch(
         `${baseUrl}/posts?category=${categorySlug}&search=${search}`
       );
       const data = await response.json();
-  
-      setPosts(data); // Replace current posts
+      setCategoryPosts(data.posts); // Replace current posts
+      setLoadingCategoryPost(false)
     } catch (error) {
       console.error("Failed to fetch category posts:", error);
+      setLoadingCategoryPost(false);
     }
   };
   
@@ -120,7 +151,6 @@ export function PostsProvider({ children }) {
     // Only fetch once at mount
   
     
-  
     fetchInitialPopularPosts();
   }, []);
   
@@ -305,6 +335,16 @@ export function PostsProvider({ children }) {
     }
   };
 
+  const fetchPostsByCategoryId = async (categoryId) => {
+    try {
+      const response = await fetch(`/api/category/${categoryId}`);
+      const data = await response.json();
+      setCategoryPosts(data); // Assuming `setPosts` updates your `posts` state
+    } catch (error) {
+      console.error("Error fetching posts by category:", error);
+    }
+  };
+  
 
   // Post View function
 const postView = async (postId) => {
@@ -338,6 +378,10 @@ const postView = async (postId) => {
       value={{
         posts,
         popularPosts,
+        categoryPosts,
+        loadingCategoryPost,
+    fetchCategoryPosts,
+        fetchInitialPopularPosts,
         fetchPosts,
         fetchCategoryPosts,
         setPosts,
@@ -351,7 +395,9 @@ const postView = async (postId) => {
         setSearchTerm,
         postView,
         isLoading :loading,
-        loadingMore
+        loadingMore,
+        loadTriggerRef,
+        hasMore
       }}
     >
       {children}

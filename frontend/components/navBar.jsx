@@ -14,6 +14,7 @@ import { CategoriesContext } from "../context/categoriesContext";
 import SparkButton from "./ui/sparkButton";
 import { userContext } from "../context/userContext";
 import CategoryBar from "./categoriesBar";
+import toast from "react-hot-toast";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -189,12 +190,20 @@ export default function Navbar() {
             </li>
 
             <li>
-              <button
-                onClick={() => navigate("/apply-publisher")}
-                className="px-4 py-2 bg-yellow-400 text-white rounded-full text-sm font-semibold shadow hover:bg-yellow-400 transition"
-              >
-                Apply for Publisher
-              </button>
+            <button
+  onClick={() => {
+    if (user?.role !== 'publisher') {
+      navigate("/apply-publisher");
+    } else {
+      toast.error('You are already a publisher');
+    }
+  }}
+  
+  className="px-4 py-2 bg-yellow-400 text-white rounded-full text-sm font-semibold shadow hover:bg-yellow-400 transition sm:min-w-32 md:min-w-40 lg:py-3 lg:max-w-24"
+>
+  Apply as Publisher
+</button>
+
             </li>
           </ul>
         </div>

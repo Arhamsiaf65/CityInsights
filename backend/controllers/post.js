@@ -40,8 +40,10 @@ router.get('/fetch', optionalAuth, async (req, res) => {
         _id: { $nin: popularPostIds } // Exclude popular posts
       };
 
-      const preferredPosts = await post.find(preferenceQuery);
-
+      const preferredPosts = await post.find(preferenceQuery)
+      .populate('author', 'name avatar')
+      .populate('category');
+    
       const preferredPostIds = preferredPosts.map(p => p._id.toString());
 
       const otherPosts = await post.find({
@@ -88,6 +90,30 @@ router.get('/popular', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch popular posts', error: error.message });
   }
 });
+
+
+// get categories posts
+router.get('/category/:slug', async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    // Find category by name (case-insensitive)
+    const category = await Category.findOne({ name: new RegExp(`^${slug}$`, 'i') });
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    const Posts = await post.find({ category: category._id })
+      .populate('author', 'name avatar')
+      .populate('category', 'name');
+
+    res.json(Posts);
+  } catch (error) {
+    console.error("Error getting category posts:", error);
+    res.status(500).json({ message: "Failed to get category posts", error: error.message });
+  }
+});
+
 
 
 router.post('/create', verifyToken, requireRole(['admin', 'publisher', 'editor'])

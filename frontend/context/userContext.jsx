@@ -144,47 +144,46 @@ export function UserProvider({ children }) {
         }
     };
 
-    const applyPublisherRole = async (requestedRole, bio, portfolio, contact) => {
+    const applyPublisherRole = async (formData) => {
         const token = Cookies.get('token');
-
-        if (token) {
-            try {
-                const res = await fetch(`${baseUrl}/users/apply-publisher`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        requestedRole,
-                        bio,
-                        portfolio,
-                        contact
-                    }),
-                });
-
-                const data = await res.json();
-                console.log("data", data);
-                if (res.ok) {
-                 
-                        setUser(data.user);
-                        toast.success(data.message);
-                        console.log("Publisher role application submitted ✅", data.user);
-                    
-                } else {
-                    console.log("Failed to apply for publisher role:", data.message || "Unknown error");
-                    toast.error(data.message);
-                }
-            } catch (error) {
-                console.log("Error applying for publisher role", error.message);
-                toast.error("Error applying for publisher role.");
-            }
+        if (!token) {
+          toast.error("Login to apply for the role");
+          return navigate('/login');
         }
-        else{
-            toast.error("login to apply for the role");
-            navigate('/login')
+      
+        try {
+          const body = new FormData();
+          body.append("requestedRole", formData.requestedRole);
+          body.append("bio", formData.bio);
+          body.append("portfolio", formData.portfolio);
+          body.append("contact", formData.contact);
+          body.append("cnicFront", formData.cnicFront);
+          body.append("cnicBack", formData.cnicBack);
+          body.append("facePhoto", formData.facePhoto);
+      
+          const res = await fetch(`${baseUrl}/users/apply-publisher`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              // Do NOT set 'Content-Type' manually when sending FormData
+            },
+            body,
+          });
+      
+          const data = await res.json();
+          if (res.ok) {
+            setUser(data.user);
+            toast.success(data.message);
+            console.log("Publisher role application submitted ✅", data.user);
+          } else {
+            toast.error(data.message || "Failed to apply.");
+          }
+        } catch (error) {
+          console.error("Error applying for publisher role", error.message);
+          toast.error("Something went wrong while applying.");
         }
-    };
+      };
+      
 
     const contact = async (name, email, message) => {
         const token = Cookies.get('token');

@@ -9,22 +9,31 @@ function Category() {
   const { categorySlug } = useParams();
   const {
     posts,
+    popularPosts,
+    fetchCategoryPosts,
+    categoryPosts,
+    loadingCategoryPost,
     isLoading: postsLoading,
-    fetchPosts
+    fetchPosts,
+    fetchInitialPopularPosts
   } = useContext(PostsContext);
   const { categories, isLoading: categoriesLoading } = useContext(CategoriesContext);
-
   const [sortOption, setSortOption] = useState('');
   const [showFeaturedOnly, setShowFeaturedOnly] = useState(false);
-
+  // let newPosts = [...posts, popularPosts]
+  console.log("category slug", categorySlug);
+  console.log("Category posts", categoryPosts);
   // Safely get category after categories are loaded
   const category = !categoriesLoading
-    ? categories.find((cat) => cat.name.toLowerCase() === categorySlug.toLowerCase())
-    : null;
+  && categories.length > 0 ? categories.find((cat) =>
+      cat.name?.toLowerCase() === categorySlug?.toLowerCase()
+    )
+  : null;
+
 
   // Fetch posts when categorySlug changes
   useEffect(() => {
-    fetchPosts();
+    fetchCategoryPosts(categorySlug);
   }, [categorySlug]);
 
   // Handle loading state or missing category
@@ -33,12 +42,12 @@ function Category() {
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600" />
       </div>
-    );
+    );  
   }
 
   // Apply filters and sorting
-  const filteredPosts = posts
-    .filter((post) => post.category.name.toLowerCase() === categorySlug.toLowerCase())
+  const filteredPosts = categoryPosts.length > 0 && categoryPosts
+  .filter((post) => post.category && post.category.name?.toLowerCase() === categorySlug.toLowerCase())
     .filter((post) => (showFeaturedOnly ? post.featured : true))
     .sort((a, b) => {
       if (sortOption === 'mostLiked') return b.likes - a.likes;
@@ -103,27 +112,43 @@ function Category() {
       </div>
 
       {/* Posts Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPosts.length > 0 ? (
-          filteredPosts.map((post) => (
-            <PostCard
-              key={post._id}
-              id={post._id}
-              image={post.images?.[0]}
-              author={post.author}
-              title={post.title}
-              likes={post.likes}
-              description={post.content.slice(0, 100) + '...'}
-              link={`/post/${post._id}`}
-              details={[post.content]}
-            />
-          ))
-        ) : (
-          <div className="col-span-full text-center text-gray-400 text-xl py-20">
-            No posts found in this category.
-          </div>
-        )}
+      {loadingCategoryPost ? (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {Array(6).fill(0).map((_, idx) => (
+      <div
+        key={idx}
+        className="animate-pulse bg-white rounded-lg shadow p-4 space-y-4"
+      >
+        <div className="h-40 bg-gray-200 rounded w-full" />
+        <div className="h-4 bg-gray-300 rounded w-3/4" />
+        <div className="h-4 bg-gray-300 rounded w-1/2" />
       </div>
+    ))}
+  </div>
+) : (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {filteredPosts.length > 0 ? (
+      filteredPosts.map((post) => (
+        <PostCard
+          key={post._id}
+          id={post._id}
+          image={post.images?.[0]}
+          author={post.author}
+          title={post.title}
+          likes={post.likes}
+          description={post.content.slice(0, 100) + '...'}
+          link={`/post/${post._id}`}
+          details={[post.content]}
+        />
+      ))
+    ) : (
+      <div className="col-span-full text-center text-gray-400 text-xl py-20">
+        No posts found in this category.
+      </div>
+    )}
+  </div>
+)}
+
     </div>
   );
 }
