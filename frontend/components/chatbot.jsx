@@ -71,7 +71,8 @@ const Chatbot = () => {
     };
 
     return (
-        <div className="max-w-xl mx-auto h-[85vh] p-4 shadow-2xl rounded-2xl bg-white border border-gray-200 flex flex-col">
+        <div className="w-full h-[85vh] max-h-[90vh] p-4 shadow-2xl rounded-2xl bg-white border border-gray-200 flex flex-col sm:max-w-xl">
+
             <div className="text-2xl font-semibold mb-4 text-blue-600">🤖 City Insight Chatbot</div>
 
             <div className="flex-1 overflow-y-auto max-h-[75vh] px-2 py-3 space-y-3 bg-gray-50 rounded-lg border">

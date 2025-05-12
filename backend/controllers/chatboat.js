@@ -161,7 +161,6 @@ if (userId) {
   // Normalize input
   const isPublisherCheck = lower.includes('am i a publisher');
   const isAdminCheck = lower.includes('am i an admin');
-  const isVerifiedCheck = lower.includes('am i verified') || lower.includes('am i a verified user');
   const roleQuery = lower.includes('what is my role' || lower.includes('my role'));
   const accountQuery = lower.includes('who am i') || lower.includes('do you know me') || lower.includes('tell me about my account' || lower.includes('about myself') || lower.includes('about me'));
 
@@ -181,13 +180,7 @@ if (userId) {
     });
   }
 
-  if (isVerifiedCheck) {
-    return res.json({
-      reply: User.verified
-        ? "✅ Yes, your account is verified."
-        : "❌ Your account is not verified yet."
-    });
-  }
+ 
 
   if (roleQuery) {
     return res.json({
@@ -330,11 +323,11 @@ if (lower.includes('top authors') || lower.includes('most active authors')) {
     });
 
     const botReply = cleanGeminiOutput(response.text);
-    // if (!botReply || botReply.includes("don't understand") || botReply.includes("what you need help with") || botReply.includes("describe the situation") || botReply.includes('sorry') || botReply.includes('something went wrong')) {
-    //   return res.json({ reply: getFallbackResponse() });
-    // }
+    if (!botReply || botReply.includes("don't understand") || botReply.includes("what you need help with") || botReply.includes("describe the situation") || botReply.includes('sorry') || botReply.includes('something went wrong')) {
+      return res.json({ reply: getFallbackResponse() });
+    }
 
-    res.json({ reply: getFallbackResponse() });
+    res.json({ reply: botReply });
 
   } catch (err) {
     console.error('Chat error:', err?.response?.data || err.message);

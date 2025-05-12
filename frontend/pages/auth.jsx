@@ -3,108 +3,119 @@ import styled from 'styled-components';
 import { userContext } from '../context/userContext';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-
-import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa'; // import icons
 import { SuccessToast, ErrorToast } from '../components/toast';
-
-
 
 const AuthPage = ({ type }) => {
   const isLogin = type === 'login';
-  const { register, login } = useContext(userContext);
   const navigate = useNavigate();
+  const { requestOTP, verifyOTPAndRegister, isOtpGenerating, login } = useContext(userContext);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [profilePic, setProfilePic] = useState(null);
+  const [profilePic, setProfilePic] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [showReset, setShowReset] = useState(false);
+  const [resetStep, setResetStep] = useState(1); // 1: request OTP, 2: reset password
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+  const [requesting, setRequesting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!isLogin) {
+    if (showReset) {
+      if (resetStep === 1) {
+        // Step 1: Send OTP
+        try {
+          setRequesting(true)
+          const res = await fetch(`${baseUrl}/users/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          const data = await res.json();
+          if (data.success) {
+            toast.custom((t) => <SuccessToast t={t} title="OTP Sent!" message="Check your email for the OTP." />);
+            setResetStep(2);
+            setRequesting(false)
+          } else {
+            toast.custom((t) => <ErrorToast t={t} title="Failed" message={data.message} />);
+            setRequesting(false)
+          }
+        } catch (err) {
+          toast.custom((t) => <ErrorToast t={t} title="Error" message="Something went wrong." />);
+          setRequesting(false)
+        }
+      } else {
+        // Step 2: Reset Password
+        if (!otp || !password || !confirmPassword) {
+          toast.custom((t) => <ErrorToast t={t} title="Error" message="All fields are required." />);
+          return;
+        }
+
         if (password !== confirmPassword) {
-            toast.custom((t) => (
-                <ErrorToast
-                    t={t}
-                    title="Password Mismatch"
-                    message="Passwords do not match. Please try again!"
-                />
-            ), { duration: 400 });
-            return;
+          toast.custom((t) => <ErrorToast t={t} title="Mismatch" message="Passwords do not match." />);
+          return;
         }
+
         try {
-            await register(name, email, password, profilePic);
-
-            toast.custom((t) => (
-                <SuccessToast
-                    t={t}
-                    title="Registration Successful!"
-                    message="You can now login and enjoy!"
-                />
-            ), { duration: 400 });
-
-            setTimeout(() => {
-                navigate('/login');
-            }, 2000);
-        } catch (error) {
-            if (error.response && error.response.status == 409) {
-                toast.custom((t) => (
-                    <ErrorToast
-                        t={t}
-                        title="User Already Exists"
-                        message="A user with this email already exists."
-                    />
-                ), { duration: 400 });
-            } else {
-                toast.custom((t) => (
-                    <ErrorToast
-                        t={t}
-                        title="Registration Failed"
-                        message="Something went wrong. Please try again!"
-                    />
-                ), { duration: 400 });
-            }
+          setRequesting(true)
+          const res = await fetch(`${baseUrl}/users/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp, newPassword: password })
+          });
+          const data = await res.json();
+          if (data.success) {
+            toast.custom((t) => <SuccessToast t={t} title="Success" message="Password reset successful!" />);
+            setTimeout(() => navigate('/login'), 1500);
+            setRequesting(false)
+          } else {
+            toast.custom((t) => <ErrorToast t={t} title="Failed" message={data.message} />);
+            setRequesting(false)
+          }
+        } catch (err) {
+          toast.custom((t) => <ErrorToast t={t} title="Error" message="Something went wrong." />)
+          setRequesting(false);
         }
-    } else {
-        try {
-            const isLoggedIn = await login(email, password);
+      }
 
-            if (isLoggedIn) {
-                toast.custom((t) => (
-                    <SuccessToast
-                        t={t}
-                        title="Login Successful!"
-                        message="Browse hassle free!"
-                    />
-                ), { duration: 400 });
-
-                setTimeout(() => {
-                    navigate('/');
-                }, 1000);
-            } else {
-                toast.custom((t) => (
-                    <ErrorToast
-                        t={t}
-                        title="Login Failed"
-                        message="Check your credentials and try again."
-                    />
-                ), { duration: 400 });
-            }
-        } catch (error) {
-            toast.custom((t) => (
-                <ErrorToast
-                    t={t}
-                    title="Login Failed"
-                    message="An unexpected error occurred. Please try again."
-                />
-            ), { duration: 400 });
-        }
+      return;
     }
-};
 
-
-
+    if (!isLogin) {
+      if (!otpSent) {
+        if (password !== confirmPassword) {
+          toast.custom((t) => <ErrorToast t={t} title="Mismatch" message="Passwords do not match." />);
+          return;
+        }
+        const otpResponse = await requestOTP(name, email, password, profilePic);
+        if (otpResponse.success) {
+          setOtpSent(true);
+        }
+      } else {
+        const result = await verifyOTPAndRegister(email, otp);
+        if (result.success) {
+          toast.custom((t) => <SuccessToast t={t} title="Success" message="Account created!" />);
+          setTimeout(() => navigate('/login'), 1500);
+        }
+      }
+    } else {
+      try {
+        const isLoggedIn = await login(email, password);
+        if (isLoggedIn) {
+          toast.custom((t) => <SuccessToast t={t} title="Login Successful!" message="Welcome back!" />);
+          setTimeout(() => navigate('/'), 1000);
+        } else {
+          toast.custom((t) => <ErrorToast t={t} title="Login Failed" message="Check your credentials." />);
+        }
+      } catch (error) {
+        toast.custom((t) => <ErrorToast t={t} title="Error" message="Unexpected error occurred." />);
+      }
+    }
+  };
 
   return (
     <StyledWrapper>
@@ -117,82 +128,75 @@ const AuthPage = ({ type }) => {
             <form className="form" onSubmit={handleSubmit}>
               <div className="logo" />
               <span className="header">
-                {isLogin ? 'Welcome Back!' : 'Create Account'}
+                {showReset ? 'Reset Password' : isLogin ? 'Welcome Back!' : 'Create Account'}
               </span>
 
-              {!isLogin && (
+              {!isLogin && !showReset && (
                 <>
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    className="input"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
+                  <input type="text" placeholder="Name" className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+                  <input type="file" className="file-input" onChange={(e) => setProfilePic(e.target.files[0])} accept="image/*" />
                 </>
               )}
-              <input
-                type="email"
-                placeholder="Email"
-                className="input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                className="input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              {!isLogin && (
-                <>
-                  <input
-                    type="password"
-                    placeholder="Confirm Password"
-                    className="input"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                  />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setProfilePic(e.target.files[0])}
-                    className="block w-full text-sm text-white file:mr-4 file:py-2 file:px-4 
-             file:rounded-full file:border-0 
-             file:text-sm file:font-semibold 
-             file:bg-blue-600 file:text-white 
-             hover:file:bg-blue-700 
-             cursor-pointer"
-                  />
 
-                </>
+              <input type="email" placeholder="Email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
+              {(!showReset || resetStep === 2) && (
+                <input type="password" placeholder={showReset ? 'New Password' : 'Password'} className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
               )}
+
+              {(!isLogin && !otpSent && !showReset) ||
+                (showReset && resetStep === 2) ? (
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  className="input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              ) : null}
+
+              {(!isLogin && otpSent) || (showReset && resetStep === 2) ? (
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  className="input"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  required
+                />
+              ) : null}
 
               <button type="submit" className="button sign-in">
-                {isLogin ? 'Sign In' : 'Sign Up'}
+                {showReset
+                  ? requesting
+                    ? 'Requesting...'
+                    : resetStep === 1
+                      ? 'Send OTP'
+                      : 'Reset Password'
+                  : isLogin
+                    ? 'Sign In'
+                    : otpSent
+                      ? 'Verify OTP'
+                      : isOtpGenerating
+                        ? 'Generating OTP...'
+                        : 'Send OTP'}
+
               </button>
 
-              {isLogin ? (
-                <p className="footer">
-                  Don't have an account?{" "}
-                  <span className="link" onClick={() => navigate('/signup')}>
-                    Register Instead
-                  </span>
-                </p>
-              ) : (
-                <p className="footer">
-                  Already have an account?{" "}
-                  <span className="link" onClick={() => navigate('/login')}>
-                    Login Instead
-                  </span>
-                </p>
-              )}
-
+              <p className="footer">
+                {showReset ? (
+                  <span className="link" onClick={() => setShowReset(false)}>Back to Login</span>
+                ) : isLogin ? (
+                  <>
+                    <span className="link" onClick={() => navigate('/signup')}>Register Instead</span>
+                    <br />
+                    <span className="link" onClick={() => setShowReset(true)}>Forgot Password?</span>
+                  </>
+                ) : (
+                  <span className="link" onClick={() => navigate('/login')}>Login Instead</span>
+                )}
+              </p>
             </form>
           </div>
         </div>
@@ -201,7 +205,7 @@ const AuthPage = ({ type }) => {
   );
 };
 
-
+export default AuthPage;
 
 const StyledWrapper = styled.div`
   height: 100vh;
@@ -272,14 +276,9 @@ const StyledWrapper = styled.div`
     width: 65px;
     height: 65px;
     align-self: center;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.2),
-      rgba(0, 0, 0, 0.2)
-    );
-    box-shadow:
-      8px 8px 16px rgba(0, 0, 0, 0.2),
-      -8px -8px 16px rgba(255, 255, 255, 0.06);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.2));
+    box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.2),
+                -8px -8px 16px rgba(255, 255, 255, 0.06);
     border-radius: 20px;
     border: 2px solid #fff;
     display: flex;
@@ -294,10 +293,7 @@ const StyledWrapper = styled.div`
     bottom: 10px;
     width: 50%;
     height: 20%;
-    border-top-left-radius: 40px;
-    border-top-right-radius: 40px;
-    border-bottom-right-radius: 20px;
-    border-bottom-left-radius: 20px;
+    border-radius: 20px 20px 20px 20px;
     border: 2.5px solid #fff;
   }
 
@@ -361,19 +357,12 @@ const StyledWrapper = styled.div`
     font-size: 14px;
     text-align: center;
     color: rgba(255, 255, 255, 0.8);
-
-    @media (max-width: 480px) {
-      font-size: 13px;
-    }
   }
 
   .link {
     color: white;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
     text-decoration: underline;
   }
 `;
-
-
-export default AuthPage;

@@ -2,12 +2,14 @@ import { createContext, useEffect, useState } from "react";
 import Cookies from 'js-cookie';
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { ErrorToast , SuccessToast} from "../components/toast";
 
 export const userContext = createContext();
 
 export function UserProvider({ children }) {
     const [user, setUser] = useState({});
     const [isLogin, setIsLogin] = useState(null);
+    const [isOtpGenerating, setOptGenerating] = useState(false);
     const baseUrl = import.meta.env.VITE_BASE_URL;
     const navigate = useNavigate();
 
@@ -47,28 +49,111 @@ export function UserProvider({ children }) {
         fetchUser();
     }, [baseUrl]);
 
-    const register = async (name, email, password, img) => {
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('email', email);
-        formData.append('password', password);
-        formData.append('profilePic', img);
+    // const register = async (name, email, password, img) => {
+    //     const formData = new FormData();
+    //     formData.append('name', name);
+    //     formData.append('email', email);
+    //     formData.append('password', password);
+    //     formData.append('profilePic', img);
 
-        const response = await fetch(`${baseUrl}/users/register`, {
+    //     const response = await fetch(`${baseUrl}/users/register`, {
+    //         method: "POST",
+    //         body: formData,
+    //     });
+
+    //     if (response.ok) {
+    //         const data = await response.json();
+    //         console.log(data);
+    //         setUser(data);
+    //     } else {
+    //         const error = new Error('Registration failed');
+    //         error.response = response;
+    //         throw error;
+    //     }
+    // }
+
+    // Step 1: Request OTP for registration
+    const requestOTP = async (name, email, password, img) => {
+        setOptGenerating(true)
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("profilePic", img); // Must match multer field
+      
+        try {
+          const response = await fetch(`${baseUrl}/users/request-otp`, {
             method: "POST",
             body: formData,
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log(data);
-            setUser(data);
-        } else {
-            const error = new Error('Registration failed');
-            error.response = response;
-            throw error;
+          });
+      
+          const data = await response.json();
+      
+          if (!response.ok || !data.success) {
+            const errorMessage = data.message || "Failed to send OTP";
+            toast.custom((t) => (
+              <ErrorToast t={t} title="OTP Request Failed" message={errorMessage} />
+            ), { duration: 400 });
+            throw new Error(errorMessage);
+            setOptGenerating(false)
+          }
+      
+          toast.custom((t) => (
+            <SuccessToast t={t} title="OTP Sent" message="Check your email for the verification code." />
+          ), { duration: 400 });
+      
+          return { success: true };
+        } catch (error) {
+          console.error("OTP request error:", error);
+          if (!error.message.includes("OTP Request Failed")) {
+            toast.custom((t) => (
+              <ErrorToast t={t} title="OTP Request Error" message="Network or server error" />
+            ), { duration: 400 });
+            setOptGenerating(false);
+          }
+          return { success: false };
         }
+      };
+      
+    
+// Step 2: Verify OTP and complete registration
+const verifyOTPAndRegister = async (email, otp) => {
+    try {
+      const response = await fetch(`${baseUrl}/users/verify-otp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, otp }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok && data.success) {
+        toast.custom((t) => (
+          <SuccessToast t={t} title="Registration Successful" message="You can now log in!" />
+        ), { duration: 400 });
+  
+        setUser(data.user);
+        return { success: true };
+      } else {
+        toast.custom((t) => (
+          <ErrorToast t={t} title="Verification Failed" message={data.message || "Invalid OTP or registration error."} />
+        ), { duration: 400 });
+  
+        return { success: false };
+      }
+    } catch (error) {
+      toast.custom((t) => (
+        <ErrorToast t={t} title="Verification Failed" message="Network or server error. Please try again." />
+      ), { duration: 400 });
+  
+      return { success: false };
     }
+  };
+  
+
+
 
     const login = async (email, password) => {
         try {
@@ -224,7 +309,7 @@ export function UserProvider({ children }) {
 
 
     return (
-        <userContext.Provider value={{ user, setUser, isLogin, register, login, logout, updateUser, applyPublisherRole , contact}}>
+        <userContext.Provider value={{ user, setUser, isOtpGenerating,isLogin, requestOTP,verifyOTPAndRegister, login, logout, updateUser, applyPublisherRole , contact}}>
             {children}
         </userContext.Provider>
     );
