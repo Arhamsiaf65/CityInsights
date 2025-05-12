@@ -367,43 +367,45 @@ function Home() {
                   <React.Fragment key={post._id}>
                     {/* Insert ad after the 3rd post */}
                     {index === 4 && (
-                      <div className="col-span-full">
-              <div className="relative w-full max-h-64 overflow-hidden rounded-2xl shadow-md">
-  {/* Video */}
-  <video
-    className="w-full h-auto object-cover"
-    autoPlay
-    muted
-    loop
-  >
-    <source
-      src="https://videos.pexels.com/video-files/30900524/13210605_360_640_30fps.mp4"
-      type="video/mp4"
-    />
-    Your browser does not support the video tag.
-  </video>
-
-  {/* Overlayed Content */}
-  <div className="absolute top-32 inset-0 bg-black opacity-40 text-white p-6 flex flex-col justify-center">
-    <h2 className="text-2xl font-bold">{ad.title}</h2>
-    <p className="text-sm mt-2">{ad.description}</p>
-    <p className="text-xs mt-1 italic">Location: {ad.address}</p>
-    {ad.link && (
-      <a
-        href={ad.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-3 inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
-      >
-        Visit Website
-      </a>
-    )}
-    <p className="mt-2 text-xs text-gray-200 italic">Sponsored by Insights</p>
-  </div>
-</div>
-
-
-                      </div>
+              <div className="col-span-full">
+              <div className="relative w-full h-64 md:h-72 rounded-2xl overflow-hidden shadow-lg">
+                {/* Video Background */}
+                <video
+                  className="absolute inset-0 w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                >
+                  <source
+                    src="https://videos.pexels.com/video-files/30900524/13210605_360_640_30fps.mp4"
+                    type="video/mp4"
+                  />
+                  Your browser does not support the video tag.
+                </video>
+            
+                {/* Overlay Layer */}
+                <div className="absolute  bg-amber-100 bg-opacity-60 " />
+            
+                {/* Content */}
+                <div className="relative z-10 p-6 md:p-8 text-white flex flex-col justify-center h-full">
+                  <h2 className="text-2xl md:text-3xl font-extrabold mb-2">{ad.title}</h2>
+                  <p className="text-sm md:text-base mb-1">{ad.description}</p>
+                  <p className="text-xs italic mb-3">📍 {ad.address}</p>
+                  {ad.link && (
+                    <a
+                      href={ad.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-max inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg shadow-md transition"
+                    >
+                      Visit Website
+                    </a>
+                  )}
+                  <p className="mt-4 text-xs text-gray-300 italic">Sponsored by Insights</p>
+                </div>
+              </div>
+            </div>
+            
 
                     )}
 

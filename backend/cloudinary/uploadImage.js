@@ -12,17 +12,35 @@ cloudinary.config({
 });
 
 // file should be a buffer (like req.file.buffer from multer with memoryStorage)
-export const imageUpload = (file) => {
+export  const imageUpload = (file) => {
   return new Promise((resolve, reject) => {
+    const isVideo = file.mimetype.startsWith('video/');
+    const resourceType = isVideo ? 'video' : 'image';
+
     const stream = cloudinary.uploader.upload_stream(
+      { resource_type: resourceType },
       (error, result) => {
         if (error) return reject(error);
-        resolve(result.secure_url); 
+        resolve(result.secure_url);
       }
     );
+
     streamifier.createReadStream(file.buffer).pipe(stream);
   });
 };
+
+
+// export const imageUpload = (file) => {
+//   return new Promise((resolve, reject) => {
+//     const stream = cloudinary.uploader.upload_stream(
+//       (error, result) => {
+//         if (error) return reject(error);
+//         resolve(result.secure_url); 
+//       }
+//     );
+//     streamifier.createReadStream(file.buffer).pipe(stream);
+//   });
+// };
 
 // export const imageArrayUpload = (file) => {
 //     return new Promise((resolve, reject) => {
