@@ -368,37 +368,41 @@ function Home() {
                     {/* Insert ad after the 3rd post */}
                     {index === 4 && (
                       <div className="col-span-full">
-                        <div className="relative bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-50 border border-yellow-200 rounded-2xl shadow-lg p-6 flex flex-col md:flex-row items-center gap-6 overflow-hidden">
-                          <img
-                            src={ad.images}
-                            alt="Ad"
-                            className="w-[65%] md:w-1/2 h-64 object-cover rounded-xl shadow-md"
-                          />
-                          <div className="flex-1">
-                            <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                              {ad.title}
-                            </h2>
-                            <p className="text-base text-gray-600 mb-3">
-                              {ad.description}
-                            </p>
-                            <p className="text-sm text-gray-500 mb-2">
-                              <strong>Location:</strong> {ad.address}
-                            </p>
-                            {ad.link && (
-                              <a
-                                href={ad.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-block mt-2 px-4 py-2 bg-blue-700 text-white rounded-md hover:bg-blue-800 transition"
-                              >
-                                Visit Website
-                              </a>
-                            )}
-                            <p className="mt-4 text-xs text-gray-400 italic">
-                              Sponsored by Insights
-                            </p>
-                          </div>
-                        </div>
+              <div className="relative w-full max-h-64 overflow-hidden rounded-2xl shadow-md">
+  {/* Video */}
+  <video
+    className="w-full h-auto object-cover"
+    autoPlay
+    muted
+    loop
+  >
+    <source
+      src="https://videos.pexels.com/video-files/30900524/13210605_360_640_30fps.mp4"
+      type="video/mp4"
+    />
+    Your browser does not support the video tag.
+  </video>
+
+  {/* Overlayed Content */}
+  <div className="absolute top-32 inset-0 bg-black opacity-40 text-white p-6 flex flex-col justify-center">
+    <h2 className="text-2xl font-bold">{ad.title}</h2>
+    <p className="text-sm mt-2">{ad.description}</p>
+    <p className="text-xs mt-1 italic">Location: {ad.address}</p>
+    {ad.link && (
+      <a
+        href={ad.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded"
+      >
+        Visit Website
+      </a>
+    )}
+    <p className="mt-2 text-xs text-gray-200 italic">Sponsored by Insights</p>
+  </div>
+</div>
+
+
                       </div>
 
                     )}

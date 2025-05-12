@@ -17,6 +17,7 @@ const PostDetail = () => {
   console.log(posts);
   const { isLogin, user } = useContext(userContext);
   const { ad } = useContext(AdContext);
+
   const { id } = useParams();
   const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
   const navigate = useNavigate();
@@ -120,11 +121,18 @@ const PostDetail = () => {
         Sponsored Ad
       </div>
       {Array.isArray(ad.images) && ad.images.length > 0 && (
-        <img
-          src={ad.images[0]}
-          alt={ad.title || "Advertisement"}
-          className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
+        // <img
+        //   src={ad.images[0]}
+        //   alt={ad.title || "Advertisement"}
+        //   className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
+        // />
+        <video width="640" height="360" autoPlay muted loop>
+        <source 
+          src="https://videos.pexels.com/video-files/30900524/13210605_360_640_30fps.mp4" 
+          type="video/mp4" 
         />
+        Your browser does not support the video tag.
+      </video>
       )}
       <div className="p-6 flex flex-col items-center text-center space-y-3">
         <h3 className="text-2xl font-bold text-gray-800">{ad.title || "Untitled Ad"}</h3>
@@ -218,7 +226,7 @@ const PostDetail = () => {
           )}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => likePost(post._id, user._id)}
+              onClick={() => user._id && likePost(post._id, user._id)}
               className={`flex gap-1 items-center hover:text-blue-600 transition ${post.isLiked ? "text-blue-600" : ""}`}
             >
               <FaThumbsUp /> {post.likes }
@@ -296,6 +304,9 @@ const PostDetail = () => {
           </button>
         </div>
       </div>
+
+    
+
 
       {/* Bottom Ad (Only for short content) */}
       {ad && wordCount <= 300 && renderMiddleAd()}

@@ -126,7 +126,7 @@ export default function Navbar() {
       >
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Logo" className="w-24 h-10 object-contain" />
+          <img src="/logo.png" alt="Logo" className=" w-42 sm:w-24 sm:h-10 object-contain" />
         </Link>
 
         {/* Center Navigation */}
@@ -260,7 +260,7 @@ export default function Navbar() {
         {/* Mobile Menu */}
         <div className="md:hidden relative">
           <button onClick={toggleMobileMenu} className="focus:outline-none">
-            <Menu size={28} className="text-white" />
+            <Menu size={52} className="text-white" />
           </button>
           {isMobileMenuOpen && (
             <div

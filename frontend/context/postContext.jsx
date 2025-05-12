@@ -203,6 +203,12 @@ export function PostsProvider({ children }) {
             post._id === postId
               ? { ...post, likes: data.totalLikes, isLiked: data.liked }
               : post
+          ))
+        setPopularPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post._id === postId
+              ? { ...post, likes: data.totalLikes, isLiked: data.liked }
+              : post
           )
         );
       } else {
