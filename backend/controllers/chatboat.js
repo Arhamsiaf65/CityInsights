@@ -2,6 +2,8 @@ import express from 'express';
 import { GoogleGenAI, createUserContent } from '@google/genai';
 import post from '../models/post.js';
 import user from '../models/user.js';
+import nlp from 'compromise';
+
 
 const geminiKey = process.env.GEMINI_KEY;
 const ai = new GoogleGenAI({ apiKey: geminiKey });
@@ -80,6 +82,14 @@ const extractNewsTopic = (message) => {
 };
 
 const extractAuthorName = (msg) => {
+
+  const doc = nlp(msg);
+  const people = doc.people().out('array');
+
+  if (people.length > 0) {
+    return people[0]; // Return the first detected person name
+  }
+  
   const patterns = [
     /posts by ([a-z ]+)/i,
     /articles by ([a-z ]+)/i,

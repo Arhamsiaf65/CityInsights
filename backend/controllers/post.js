@@ -311,14 +311,21 @@ router.get('/my-posts', verifyToken, requireRole('author'), async (req, res) => 
 // Increment views
 router.post('/:id/view', async (req, res) => {
   try {
+    console.log("post id", req.params.id);
+    const {userId} = req.body
+    console.log("userID", userId);
     const Post = await post.findByIdAndUpdate(
-      req.params.id,
+      req.params.id || req.params.postId,
       { $inc: { views: 1 } },
       { new: true }
     );
+    if(req.userId !== ""){
+      // this user interest section updated
+    await updateUserInterests(userId, req.params.id || req.params.postId);
+    }
     res.json({ views: Post.views });
   } catch (error) {
-    console.error('Error:', error);  // Log the error to the console
+    console.error('Error:', error);  
     res.status(500).json({ message: "Error incrementing view", error: error.message });
   }
 });
@@ -331,13 +338,14 @@ router.post('/:id/like', verifyToken,async (req, res) => {
     if (!postDoc) return res.status(404).json({ message: "post not found" });
 
     const { userId } = req.body;
-
+    console.log(req.params.id, userId);
     // 🛠 Correct way
     const hasLiked = postDoc.likedBy.includes(userId);
 
     if (hasLiked) {
       postDoc.likedBy.pull(userId);
       postDoc.likes--;
+      
     } else {
       postDoc.likedBy.push(userId);
       postDoc.likes++;

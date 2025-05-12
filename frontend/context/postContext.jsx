@@ -185,6 +185,7 @@ export function PostsProvider({ children }) {
   // Like a post
   const likePost = async (postId, userId) => {
     try {
+      console.log(postId, userId);
       const token = Cookies.get("token");
       const response = await fetch(`${baseUrl}/posts/${postId}/like`, {
         method: "POST",
@@ -347,31 +348,32 @@ export function PostsProvider({ children }) {
   
 
   // Post View function
-const postView = async (postId) => {
-  try {
-    const response = await fetch(`${baseUrl}/posts/${postId}/view`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      // Update the views count in the state for that post
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post._id === postId ? { ...post, views: data.views } : post
-        )
-      );
-    } else {
-      console.error("Failed to update views");
+  const postView = async (postId, userId) => {
+    try {
+      const response = await fetch(`${baseUrl}/posts/${postId}/view`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }) // Send userId in request body
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        // Update the views count in the state for that post
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post._id === postId ? { ...post, views: data.views } : post
+          )
+        );
+      } else {
+        console.error("Failed to update views");
+      }
+    } catch (error) {
+      console.error("Error incrementing views:", error);
     }
-  } catch (error) {
-    console.error("Error incrementing views:", error);
-  }
-};
-
+  };
+  
 
   return (
     <PostsContext.Provider

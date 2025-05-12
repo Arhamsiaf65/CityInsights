@@ -31,7 +31,7 @@ const PostDetail = () => {
 
   useEffect(() => {
     fetchComments(id);
-    postView(id);
+    postView(id, user._id || "");
   }, []);
 
   if (isLoading || !post) {
@@ -218,10 +218,10 @@ const PostDetail = () => {
           )}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => likePost(post._id, user.id)}
+              onClick={() => likePost(post._id, user._id)}
               className={`flex gap-1 items-center hover:text-blue-600 transition ${post.isLiked ? "text-blue-600" : ""}`}
             >
-              <FaThumbsUp /> {post.likes}
+              <FaThumbsUp /> {post.likes }
             </button>
             <button onClick={() => handleShareClick("facebook", post._id)} className="flex gap-1 hover:text-blue-600">
               <FaFacebook /> {post.shares}
