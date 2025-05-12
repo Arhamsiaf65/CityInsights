@@ -377,7 +377,7 @@ function Home() {
                   loop
                 >
                   <source
-                    src="https://videos.pexels.com/video-files/30900524/13210605_360_640_30fps.mp4"
+                    src={ad.images[0]}
                     type="video/mp4"
                   />
                   Your browser does not support the video tag.
