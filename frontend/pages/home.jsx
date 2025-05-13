@@ -382,6 +382,8 @@ function Home() {
                   />
                   Your browser does not support the video tag.
                 </video>
+
+                <img src={ad.images[0]} alt="" />
             
                 {/* Overlay Layer */}
                 <div className="absolute  bg-amber-100 bg-opacity-60 " />

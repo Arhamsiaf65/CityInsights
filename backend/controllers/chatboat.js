@@ -2,22 +2,24 @@ import express from 'express';
 import { GoogleGenAI, createUserContent } from '@google/genai';
 import post from '../models/post.js';
 import user from '../models/user.js';
+import category from '../models/category.js'
 import nlp from 'compromise';
+
 
 const router = express.Router();
 const geminiKey = process.env.GEMINI_KEY;
 const ai = new GoogleGenAI({ apiKey: geminiKey });
 
-// ✨ Utility: Clean Gemini output
+// ✨ Clean Gemini output
 const cleanGeminiOutput = (text) => text.replace(/\*/g, '').trim();
 
-// ✨ Utility: Greeting handler
+// ✨ Handle greeting
 const handleGreeting = (msg) => {
   const greetings = ['hi', 'hello', 'hey', 'salam', 'assalamu alaikum'];
   return greetings.some(g => msg.toLowerCase().includes(g));
 };
 
-// ✨ Utility: Default assistant response
+// ✨ Fallback / Help response
 const getFallbackResponse = () => `🤖 Here's how I can assist you:
 
 - 📚 Ask about City Insight and your account
@@ -31,7 +33,7 @@ const getFallbackResponse = () => `🤖 Here's how I can assist you:
 
 🧠 Try: "Latest news", "Posts about politics", "Contact support"`;
 
-// ✨ Utility: Get user context
+// ✨ User info for personalization
 const getUserPersonalizedMessage = async (userId) => {
   if (!userId) return '';
   try {
@@ -42,7 +44,7 @@ const getUserPersonalizedMessage = async (userId) => {
   }
 };
 
-// ✨ Extract topic from message
+// ✨ NLP extraction helpers
 const extractNewsTopic = (msg) => {
   const lower = msg.toLowerCase();
   const triggers = ['news about', 'tell me about', 'update on', 'any article on', 'information on', 'latest on'];
@@ -61,7 +63,6 @@ const extractNewsTopic = (msg) => {
   return null;
 };
 
-// ✨ Extract author name
 const extractAuthorName = (msg) => {
   const doc = nlp(msg);
   const people = doc.people().out('array');
@@ -79,14 +80,13 @@ const extractAuthorName = (msg) => {
   return null;
 };
 
-// ✨ Extract tag or category
 const extractTagOrCategory = (msg) => {
   const tag = msg.match(/(?:tagged with|in tag) ([a-z0-9\- ]+)/i);
-  const cat = msg.match(/(?:category|under category|in category) ([a-z0-9\- ]+)/i);
+  const cat = msg.match(/(?:category|under category|in category | about) ([a-z0-9\- ]+)/i);
   return tag?.[1] || cat?.[1] || null;
 };
 
-// ✨ FAQs and responses
+// ✨ FAQs
 const faqKeywords = [
   {
     keywords: ['apply', 'publisher'],
@@ -110,12 +110,24 @@ const faqAnswers = (msg) => {
   return null;
 };
 
-// ✅ MAIN ROUTE: POST /chat
+// ✅ MAIN ROUTE
 router.post('/', async (req, res) => {
   const { message, userId } = req.body;
   const context = await getUserPersonalizedMessage(userId);
 
   try {
+
+    // ✨ Greet
+    if (handleGreeting(message)) {
+      return res.json({ reply: `👋 Hello! How can I help you?\n\n${getFallbackResponse()}` });
+    }
+
+    // ✨ FAQ
+    const faq = faqAnswers(message);
+    if (faq) return res.json({ reply: faq });
+
+
+    // ✨ Ask Gemini to analyze the message
     const aiResponse = await ai.models.generateContent({
       model: 'gemini-2.0-flash',
       contents: [
@@ -124,37 +136,53 @@ router.post('/', async (req, res) => {
           `User context: ${context || 'No user data'}`,
           `User message: "${message}"`,
           `If the user wants DB results, reply with [FETCH:<intent>].`,
-          `Valid intents: latest posts, posts by author, posts by tag or category, platform info.`,
+          `Valid intents: latest posts, posts by author, posts by tag or category, platform info, user info.`,
+          `Examples of user info: "What is my role?", "Am I a publisher?", "Tell me about myself."`,
+          `If the user wants DB results, reply with [FETCH:<intent>].`,
+          `if you fail to detect intent, do NOT reply with fetch. Give a helpful natural reply instead.`,
+          `if the user asks like posts about security do valid intent as posts by tag or category`,
+          `Valid intents: latest posts, posts by author, posts by tag or category, platform info, user info.`
+
         ]),
       ],
     });
 
     const reply = cleanGeminiOutput(aiResponse.text);
 
-    // If Gemini returns fetch intent
-    if (reply.startsWith('[FETCH:')) {
-      const intent = reply.match(/\[FETCH:(.*?)\]/)?.[1]?.toLowerCase().trim();
+
+
+    // ✨ Handle intent if AI returned [FETCH:<intent>]
+    const intentMatch = reply.match(/\[FETCH:(.*?)\]/i);
+
+    if (intentMatch) {
+      const intent = intentMatch[1].toLowerCase().trim();
 
       switch (intent) {
         case 'latest posts': {
           try {
-            // Fetch the latest posts, populated with the author details
             const postsList = await post
               .find()
               .sort({ createdAt: -1 })
               .limit(5)
-              .populate('author', 'name');  // Populate author field with only 'name'
-        
-            // Format the post list with author name instead of ID
+              .populate('author', 'name');
+
             const summary = postsList.map(p => `• ${p.title} — by ${p.author.name} [${p.category}]`).join('\n');
-        
             return res.json({ reply: `📰 Latest posts:\n${summary}` });
           } catch (error) {
             console.error(error);
             return res.json({ reply: '❌ Error fetching latest posts.' });
           }
         }
-        
+
+        case 'user info': {
+          if (!userId) return res.json({ reply: "⚠️ You're not logged in, so I can't fetch your role or profile." });
+
+          const currentUser = await user.findById(userId).select('name role');
+          if (!currentUser) return res.json({ reply: "❌ User not found." });
+
+          return res.json({ reply: `👤 Your name is *${currentUser.name}* and your role is *${currentUser.role}*.` });
+        }
+
 
         case 'posts by author': {
           const name = extractAuthorName(message);
@@ -172,39 +200,36 @@ router.post('/', async (req, res) => {
 
         case 'posts by tag or category': {
           const keyword = extractTagOrCategory(message);
-          if (!keyword) return res.json({ reply: "❓ Please specify a tag or category." });
-
+          if (!keyword) return res.json({ reply: "❓ Please specify a tag or category. Posts in category/tag security" });
+        
+          console.log("finding posts by category");
+        
+          // First, populate the category field and then apply regex on tags or category name
           const posts = await post.find({
             $or: [
-              { tags: { $regex: keyword, $options: 'i' } },
-              { category: { $regex: keyword, $options: 'i' } }
+              { tags: { $regex: new RegExp(keyword, 'i') } }, // regex search on tags
+              { category: { $in: await category.find({ name: { $regex: new RegExp(keyword, 'i') } }).select('_id') } } // regex search on category name
             ]
           }).limit(5);
-
+        
           if (!posts.length) return res.json({ reply: `⚠️ No posts found under "${keyword}".` });
-
+        
           const summary = posts.map(p => `• ${p.title}`).join('\n');
           return res.json({ reply: `📂 Posts under "${keyword}":\n${summary}` });
         }
+        
 
         case 'platform info':
           return res.json({ reply: getFallbackResponse() });
 
         default:
-          return res.json({ reply });
+          return res.json({ reply: '🤖 Sorry, I didn’t understand that intent. Try asking about news, authors, tags or City Insight info.' });
       }
     }
 
-    // ✨ Greetings
-    if (handleGreeting(message)) {
-      return res.json({ reply: `👋 Hello! How can I help you?\n\n${getFallbackResponse()}` });
-    }
 
-    // ✨ FAQ Matching
-    const faq = faqAnswers(message);
-    if (faq) return res.json({ reply: faq });
 
-    // ✨ Default Gemini reply
+    // ✨ Default Gemini answer
     return res.json({ reply });
 
   } catch (err) {
