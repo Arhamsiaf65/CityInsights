@@ -5,7 +5,6 @@ const publisherApplicationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
-    unique: true, // One application per user
   },
   cnicFront: {
     type: String,

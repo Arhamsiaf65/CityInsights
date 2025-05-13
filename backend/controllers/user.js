@@ -324,47 +324,37 @@ router.put('/profile/update', verifyToken, async (req, res) => {
 
 // apply for publisher role
 // PATCH /users/apply-publisher
-const publisherUpload = upload.fields([
-  { name: 'cnicFront', maxCount: 1 },
-  { name: 'cnicBack', maxCount: 1 },
-  { name: 'facePhoto', maxCount: 1 },
-]);
-router.patch('/apply-publisher', verifyToken, publisherUpload, async (req, res) => {
+// No Multer needed now
+router.patch('/apply-publisher', verifyToken, async (req, res) => {
   try {
-    const { requestedRole, bio, portfolio, contact } = req.body;
+    const { requestedRole, bio, portfolio, contact, cnicFront, cnicBack, facePhoto } = req.body;
     const userId = req.user.id;
 
+    // Validate role
     if (!['publisher'].includes(requestedRole)) {
       return res.status(400).json({ message: "Invalid role request." });
     }
 
+    // Fetch user from database
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
+    // Check if user has already submitted an application
     if (['applied', 'pending', 'approved'].includes(user.verificationStatus)) {
       return res.status(400).json({ message: "Application already submitted or approved." });
     }
 
-    
-
-    const files = req.files;
-    if (!files?.cnicFront || !files?.cnicBack || !files?.facePhoto) {
-      return res.status(400).json({ message: "All 3 images are required." });
+    // Ensure all image links are provided
+    if (!cnicFront || !cnicBack || !facePhoto) {
+      return res.status(400).json({ message: "All 3 image links are required." });
     }
-
-    // Upload images to Cloudinary
-    const [cnicFrontUrl, cnicBackUrl, facePhotoUrl] = await Promise.all([
-      imageUpload(files.cnicFront[0]),
-      imageUpload(files.cnicBack[0]),
-      imageUpload(files.facePhoto[0]),
-    ]);
 
     // Save application record
     const application = new PublisherApplication({
       user: userId,
-      cnicFront: cnicFrontUrl,
-      cnicBack: cnicBackUrl,
-      facePhoto: facePhotoUrl,
+      cnicFront,  // Image link from request body
+      cnicBack,   // Image link from request body
+      facePhoto,  // Image link from request body
     });
 
     await application.save();
@@ -391,6 +381,8 @@ router.patch('/apply-publisher', verifyToken, publisherUpload, async (req, res) 
     });
   }
 });
+
+
 
 router.get('/publisher-requests', async (req, res) => {
   try {

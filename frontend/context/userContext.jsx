@@ -229,45 +229,85 @@ const verifyOTPAndRegister = async (email, otp) => {
         }
     };
 
+    const uploadToCloudinary = async (file) => {
+      const url = `https://api.cloudinary.com/v1_1/dw8zsmfy3/image/upload`; // ✅ Match handleImageUpload cloud name
+      const formData = new FormData();
+    
+      formData.append("file", file);
+      formData.append("upload_preset", "parking"); // ✅ Match preset used in handleImageUpload
+      formData.append("effect", "background_removal"); // ✅ Same effect as in handleImageUpload
+    
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+    
+        if (data.secure_url) {
+          return data.secure_url;
+        } else {
+          console.error("Cloudinary response error:", data);
+          return null;
+        }
+      } catch (err) {
+        console.error("Upload failed:", err);
+        return null;
+      }
+    };
+    
+    
+
     const applyPublisherRole = async (formData) => {
-        const token = Cookies.get('token');
-        if (!token) {
-          toast.error("Login to apply for the role");
-          return navigate('/login');
+      const token = Cookies.get('token');
+      if (!token) {
+        toast.error("Login to apply for the role");
+        return navigate('/login');
+      }
+    
+      try {
+        // ⬆️ Upload each image to Cloudinary and log their URLs
+        const cnicFrontUrl = await uploadToCloudinary(formData.cnicFront);
+        const cnicBackUrl = await uploadToCloudinary(formData.cnicBack);
+        const facePhotoUrl = await uploadToCloudinary(formData.facePhoto);
+    
+        console.log("CNIC Front:", cnicFrontUrl);
+        console.log("CNIC Back:", cnicBackUrl);
+        console.log("Face Photo:", facePhotoUrl);
+    
+        // 📤 Prepare the payload to send to backend
+        const body = {
+          requestedRole: formData.requestedRole,
+          bio: formData.bio,
+          portfolio: formData.portfolio,
+          contact: formData.contact,
+          cnicFront: cnicFrontUrl,
+          cnicBack: cnicBackUrl,
+          facePhoto: facePhotoUrl,
+        };
+    
+        const res = await fetch(`${baseUrl}/users/apply-publisher`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        });
+    
+        const data = await res.json();
+        if (res.ok) {
+          setUser(data.user);
+          toast.success(data.message);
+          console.log("Submitted to backend:", body);
+        } else {
+          toast.error(data.message || "Failed to apply.");
         }
-      
-        try {
-          const body = new FormData();
-          body.append("requestedRole", formData.requestedRole);
-          body.append("bio", formData.bio);
-          body.append("portfolio", formData.portfolio);
-          body.append("contact", formData.contact);
-          body.append("cnicFront", formData.cnicFront);
-          body.append("cnicBack", formData.cnicBack);
-          body.append("facePhoto", formData.facePhoto);
-      
-          const res = await fetch(`${baseUrl}/users/apply-publisher`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              // Do NOT set 'Content-Type' manually when sending FormData
-            },
-            body,
-          });
-      
-          const data = await res.json();
-          if (res.ok) {
-            setUser(data.user);
-            toast.success(data.message);
-            console.log("Publisher role application submitted ✅", data.user);
-          } else {
-            toast.error(data.message || "Failed to apply.");
-          }
-        } catch (error) {
-          console.error("Error applying for publisher role", error.message);
-          toast.error("Something went wrong while applying.");
-        }
-      };
+      } catch (error) {
+        console.error("Error applying for publisher role", error.message);
+        toast.error("Something went wrong while applying.");
+      }
+    };
       
 
     const contact = async (name, email, message) => {
