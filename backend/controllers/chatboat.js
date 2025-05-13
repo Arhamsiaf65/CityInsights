@@ -137,6 +137,7 @@ router.post('/', async (req, res) => {
           `User message: "${message}"`,
           `If the user wants DB results, reply with [FETCH:<intent>].`,
           `Valid intents: latest posts, posts by author, posts by tag or category, platform info, user info.`,
+          `this is developed by alisha, roman, and laiba`,
           `Examples of user info: "What is my role?", "Am I a publisher?", "Tell me about myself."`,
           `If the user wants DB results, reply with [FETCH:<intent>].`,
           `if you fail to detect intent, do NOT reply with fetch. Give a helpful natural reply instead.`,
