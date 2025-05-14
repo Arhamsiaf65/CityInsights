@@ -11,15 +11,15 @@ const sendMail = async (name, email, message) => {
       const transporter = nodemailer.createTransport({
           service: 'Gmail',
           auth: {
-              user: 'arhamsaif66@gmail.com',
-              pass: 'tahi tebw nsnp ezhd',
+              user: 'romanbutt51@gmail.com',
+              pass: 'eomk unvy haqr fvcl',
           },
       });
 
       // Email options
       const mailOptions = {
           from: email,
-          to: 'arhamsaif65@gmail.com',
+          to: 'romanbutt51@gmail.com',
           subject: `Contact from cityinsight user ${name}  ${email}`,
           text: message,
       };

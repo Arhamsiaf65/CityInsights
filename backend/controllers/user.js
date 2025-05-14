@@ -417,6 +417,7 @@ router.patch('/update-request/:id', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'Invalid status. Use accepted or rejected.' });
     }
 
+    // Update the user's verification status and role
     const updatedUser = await User.findByIdAndUpdate(
       id,
       {
@@ -431,15 +432,22 @@ router.patch('/update-request/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Delete the application record if exists
+    await PublisherApplication.findOneAndDelete({ user: id });
+
     res.status(200).json({
       success: true,
-      message: `User has been ${status}`,
+      message: `User has been ${status} and application removed`,
       user: updatedUser
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update verification status', error: error.message });
+    res.status(500).json({
+      message: 'Failed to update verification status',
+      error: error.message
+    });
   }
 });
+
 
 
 

@@ -25,3 +25,4 @@ postSchema.pre('save', function(next) {
 });
 
 export default  mongoose.models.Post || mongoose.model('Post', postSchema);
+ 

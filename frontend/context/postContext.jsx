@@ -135,6 +135,8 @@ export function PostsProvider({ children }) {
 
   const fetchInitialPopularPosts = async () => {
     try {
+      setLoading(true);
+
       const response = await fetch(`${baseUrl}/posts/popular`);
       const data = await response.json();
   
@@ -143,8 +145,11 @@ export function PostsProvider({ children }) {
       const filteredPopular = data.filter(post => !postIds.has(post._id.toString()));
   
       setPopularPosts(filteredPopular);
+      setLoading(false);
+
     } catch (error) {
       console.error("Failed to fetch popular posts:", error);
+      setLoading(false);
     }
   };
   useEffect(() => {

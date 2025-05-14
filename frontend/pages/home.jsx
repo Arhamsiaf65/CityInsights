@@ -367,47 +367,64 @@ function Home() {
                   <React.Fragment key={post._id}>
                     {/* Insert ad after the 3rd post */}
                     {index === 4 && (
-              <div className="col-span-full">
-              <div className="relative w-full h-64 md:h-72 rounded-2xl overflow-hidden shadow-lg">
-                {/* Video Background */}
-                <video
-                  className="absolute inset-0 w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                >
-                  <source
-                    src={ad.images[0]}
-                    type="video/mp4"
-                  />
-                  Your browser does not support the video tag.
-                </video>
-
-                <img src={ad.images[0]} alt="" />
-            
-                {/* Overlay Layer */}
-                <div className="absolute  bg-amber-100 bg-opacity-60 " />
-            
-                {/* Content */}
-                <div className="relative z-10 p-6 md:p-8 text-white flex flex-col justify-center h-full">
-                  <h2 className="text-2xl md:text-3xl font-extrabold mb-2">{ad.title}</h2>
-                  <p className="text-sm md:text-base mb-1">{ad.description}</p>
-                  <p className="text-xs italic mb-3">📍 {ad.address}</p>
-                  {ad.link && (
-                    <a
-                      href={ad.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-max inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg shadow-md transition"
-                    >
-                      Visit Website
-                    </a>
-                  )}
-                  <p className="mt-4 text-xs text-gray-300 italic">Sponsored by Insights</p>
-                </div>
-              </div>
-            </div>
-            
+             <div className="col-span-full">
+             <div className="relative w-full h-72 md:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-xl group">
+               
+               {/* Video Background */}
+               <video
+                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+                 autoPlay
+                 muted
+                 loop
+                 playsInline
+                 poster={ad.images[0]}
+               >
+                 <source src={ad.images[0]} type="video/mp4" />
+                 Your browser does not support the video tag.
+               </video>
+           
+               {/* Fallback Image (if video fails or is disabled) */}
+               <img
+                 src={ad.images[0]}
+                 alt="Ad Preview"
+                 className="absolute inset-0 w-full h-full object-cover"
+                 style={{ display: 'none' }} // JS fallback could be used if needed
+               />
+           
+               {/* Overlay Gradient for readability */}
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent z-10" />
+           
+               {/* Content */}
+               <div className="relative z-20 p-6 md:p-8 flex flex-col justify-end h-full text-white">
+                 <div>
+                   <h2 className="text-2xl md:text-3xl font-bold leading-tight mb-1 drop-shadow">
+                     {ad.title}
+                   </h2>
+                   <p className="text-sm md:text-base mb-2 line-clamp-3 opacity-90">
+                     {ad.description}
+                   </p>
+                   <p className="text-xs italic opacity-80">📍 {ad.address}</p>
+                 </div>
+           
+                 {/* Button and Sponsor */}
+                 <div className="mt-4 flex items-center justify-between">
+                   {ad.link && (
+                     <a
+                       href={ad.link}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition"
+                     >
+                       Visit Website
+                     </a>
+                   )}
+                   <p className="text-xs text-gray-300 italic">Sponsored by Insights</p>
+                 </div>
+               </div>
+             </div>
+           </div>
+           
+           
 
                     )}
 

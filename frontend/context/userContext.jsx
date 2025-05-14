@@ -9,8 +9,12 @@ export const userContext = createContext();
 export function UserProvider({ children }) {
     const [user, setUser] = useState({});
     const [isLogin, setIsLogin] = useState(null);
-    const [isOtpGenerating, setOptGenerating] = useState(false);
-    const baseUrl = import.meta.env.VITE_BASE_URL;
+    const [isOtpGenerating, setOtpGenerating] = useState(false);
+    const [isVerifyingOtp, setVerifyingOtp] = useState(false);
+    const [isLoggingIn, setLoggingIn] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+       const baseUrl = import.meta.env.VITE_BASE_URL;
     const navigate = useNavigate();
 
 
@@ -74,118 +78,113 @@ export function UserProvider({ children }) {
 
     // Step 1: Request OTP for registration
     const requestOTP = async (name, email, password, img) => {
-        setOptGenerating(true)
-        const formData = new FormData();
-        formData.append("name", name);
-        formData.append("email", email);
-        formData.append("password", password);
-        formData.append("profilePic", img); // Must match multer field
-      
-        try {
-          const response = await fetch(`${baseUrl}/users/request-otp`, {
-            method: "POST",
-            body: formData,
-          });
-      
-          const data = await response.json();
-      
-          if (!response.ok || !data.success) {
-            const errorMessage = data.message || "Failed to send OTP";
-            toast.custom((t) => (
-              <ErrorToast t={t} title="OTP Request Failed" message={errorMessage} />
-            ), { duration: 400 });
-            throw new Error(errorMessage);
-            setOptGenerating(false)
-          }
-      
+      setOtpGenerating(true); // Start loading
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("profilePic", img);
+    
+      try {
+        const response = await fetch(`${baseUrl}/users/request-otp`, {
+          method: "POST",
+          body: formData,
+        });
+    
+        const data = await response.json();
+    
+        if (!response.ok || !data.success) {
+          const errorMessage = data.message || "Failed to send OTP";
           toast.custom((t) => (
-            <SuccessToast t={t} title="OTP Sent" message="Check your email for the verification code." />
+            <ErrorToast t={t} title="OTP Request Failed" message={errorMessage} />
           ), { duration: 400 });
-      
-          return { success: true };
-        } catch (error) {
-          console.error("OTP request error:", error);
-          if (!error.message.includes("OTP Request Failed")) {
-            toast.custom((t) => (
-              <ErrorToast t={t} title="OTP Request Error" message="Network or server error" />
-            ), { duration: 400 });
-            setOptGenerating(false);
-          }
           return { success: false };
         }
-      };
+    
+        toast.custom((t) => (
+          <SuccessToast t={t} title="OTP Sent" message="Check your email for the verification code." />
+        ), { duration: 400 });
+    
+        return { success: true };
+      } catch (error) {
+        console.error("OTP request error:", error);
+        toast.custom((t) => (
+          <ErrorToast t={t} title="OTP Request Error" message="Network or server error" />
+        ), { duration: 400 });
+        return { success: false };
+      } finally {
+        setOtpGenerating(false); // Always stop loading
+      }
+    };
+    
       
     
 // Step 2: Verify OTP and complete registration
 const verifyOTPAndRegister = async (email, otp) => {
+  setVerifyingOtp(true);
+  try {
+    const response = await fetch(`${baseUrl}/users/verify-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, otp }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      toast.custom((t) => (
+        <SuccessToast t={t} title="Registration Successful" message="You can now log in!" />
+      ), { duration: 400 });
+      setUser(data.user);
+      return { success: true };
+    } else {
+      toast.custom((t) => (
+        <ErrorToast t={t} title="Verification Failed" message={data.message || "Invalid OTP or registration error."} />
+      ), { duration: 400 });
+      return { success: false };
+    }
+  } catch (error) {
+    toast.custom((t) => (
+      <ErrorToast t={t} title="Verification Failed" message="Network or server error. Please try again." />
+    ), { duration: 400 });
+    return { success: false };
+  } finally {
+    setVerifyingOtp(false);
+  }
+};
+
+  
+
+
+
+  const login = async (email, password) => {
+    setLoggingIn(true);
     try {
-      const response = await fetch(`${baseUrl}/users/verify-otp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, otp }),
+      const res = await fetch(`${baseUrl}/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
   
-      const data = await response.json();
+      const data = await res.json();
   
-      if (response.ok && data.success) {
-        toast.custom((t) => (
-          <SuccessToast t={t} title="Registration Successful" message="You can now log in!" />
-        ), { duration: 400 });
-  
+      if (res.ok) {
         setUser(data.user);
-        return { success: true };
+        setIsLogin(true);
+        Cookies.set('token', data.token, { expires: 7 });
+        return true;
       } else {
-        toast.custom((t) => (
-          <ErrorToast t={t} title="Verification Failed" message={data.message || "Invalid OTP or registration error."} />
-        ), { duration: 400 });
-  
-        return { success: false };
+        console.log("Login failed:", data.message || "Unknown error");
+        return false;
       }
     } catch (error) {
-      toast.custom((t) => (
-        <ErrorToast t={t} title="Verification Failed" message="Network or server error. Please try again." />
-      ), { duration: 400 });
-  
-      return { success: false };
+      console.log("Failed to login", error.message);
+      return false;
+    } finally {
+      setLoggingIn(false);
     }
   };
   
-
-
-
-    const login = async (email, password) => {
-        try {
-            console.log("email, password", email, password);
-    
-            const res = await fetch(`${baseUrl}/users/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password }),
-            });
-    
-            const data = await res.json();
-    
-            if (res.ok) {
-                console.log("Login success:", data);
-                setUser(data.user);
-                setIsLogin(true); // Only set isLogin to true on successful login
-                Cookies.set('token', data.token, { expires: 7 }); // token valid for 7 days
-                console.log("Token saved to cookies ✅");
-    
-                return true; // Indicating successful login
-            } else {
-                console.log("Login failed:", data.message || "Unknown error");
-                return false; // Indicating failed login
-            }
-        } catch (error) {
-            console.log("Failed to login", error.message);
-            return false; // Indicating failed login due to error
-        }
-    };
     
 
 
@@ -264,18 +263,19 @@ const verifyOTPAndRegister = async (email, otp) => {
         toast.error("Login to apply for the role");
         return navigate('/login');
       }
-    
+  
       try {
-        // ⬆️ Upload each image to Cloudinary and log their URLs
+        setUploading(true);
+        // ⬆️ Upload images to Cloudinary
         const cnicFrontUrl = await uploadToCloudinary(formData.cnicFront);
         const cnicBackUrl = await uploadToCloudinary(formData.cnicBack);
         const facePhotoUrl = await uploadToCloudinary(formData.facePhoto);
-    
+        setUploading(false);
+  
         console.log("CNIC Front:", cnicFrontUrl);
         console.log("CNIC Back:", cnicBackUrl);
         console.log("Face Photo:", facePhotoUrl);
-    
-        // 📤 Prepare the payload to send to backend
+  
         const body = {
           requestedRole: formData.requestedRole,
           bio: formData.bio,
@@ -285,7 +285,8 @@ const verifyOTPAndRegister = async (email, otp) => {
           cnicBack: cnicBackUrl,
           facePhoto: facePhotoUrl,
         };
-    
+  
+        setSubmitting(true);
         const res = await fetch(`${baseUrl}/users/apply-publisher`, {
           method: 'PATCH',
           headers: {
@@ -294,8 +295,10 @@ const verifyOTPAndRegister = async (email, otp) => {
           },
           body: JSON.stringify(body),
         });
-    
+  
         const data = await res.json();
+        setSubmitting(false);
+  
         if (res.ok) {
           setUser(data.user);
           toast.success(data.message);
@@ -303,11 +306,15 @@ const verifyOTPAndRegister = async (email, otp) => {
         } else {
           toast.error(data.message || "Failed to apply.");
         }
+  
       } catch (error) {
+        setUploading(false);
+        setSubmitting(false);
         console.error("Error applying for publisher role", error.message);
         toast.error("Something went wrong while applying.");
       }
     };
+  
       
 
     const contact = async (name, email, message) => {
@@ -349,7 +356,7 @@ const verifyOTPAndRegister = async (email, otp) => {
 
 
     return (
-        <userContext.Provider value={{ user, setUser, isOtpGenerating,isLogin, requestOTP,verifyOTPAndRegister, login, logout, updateUser, applyPublisherRole , contact}}>
+        <userContext.Provider value={{ user, setUser, isOtpGenerating, isLoggingIn, isVerifyingOtp,isLogin, requestOTP,verifyOTPAndRegister, login, logout, updateUser, applyPublisherRole , contact, uploading, submitting}}>
             {children}
         </userContext.Provider>
     );

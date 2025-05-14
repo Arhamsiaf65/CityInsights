@@ -9,7 +9,7 @@ export default function CategoryBar() {
   const scrollRef = useRef(null);
 
   // Duplicate categories to simulate infinite scroll
-  const repeatedCategories = [...categories, ...categories, ...categories];
+  const repeatedCategories = [...categories, ...categories, ...categories, ...categories, ...categories, ...categories, categories, ...categories, ...categories];
 
   // Set scroll to the middle
   useEffect(() => {

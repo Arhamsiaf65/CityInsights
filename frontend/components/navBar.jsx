@@ -120,14 +120,17 @@ export default function Navbar() {
     <div className="sticky top-0 z-30">
       <CategoryBar />
       <nav
-        className={`bg-[#2F5191] text-white px-6 py-5 flex items-center justify-between shadow-md transition-transform duration-300 ${
-          hideNavbar ? "-translate-y-full" : "translate-y-0"
-        }`}
+        className={`bg-[#2F5191] text-white px-6 py-4 flex items-center justify-between shadow-md transition-transform duration-300 ${hideNavbar ? "-translate-y-full" : "translate-y-0"
+          }`}
       >
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Logo" className=" w-42 sm:w-24 sm:h-10 object-contain" />
+        <Link to="/" className="flex items-center gap-2 text-white hover:text-primary transition-all duration-300">
+          <span className="flex items-baseline gap-2">
+            <h1 className="text-4xl font-bold tracking-tight text-primary">City</h1>
+            <p className="text-2xl font-semibold tracking-wide text-gray-200">Insights</p>
+          </span>
         </Link>
+
 
         {/* Center Navigation */}
         <div className="hidden md:flex flex-col items-center justify-center absolute left-1/2 transform -translate-x-1/2 mt-2">
@@ -137,8 +140,7 @@ export default function Navbar() {
                 <NavLink
                   to={to}
                   className={({ isActive }) =>
-                    `transition-colors px-4 py-2 duration-200 hover:text-yellow-400 ${
-                      isActive ? "text-yellow-400 font-semibold" : "text-white"
+                    `transition-colors px-4 py-2 duration-200 hover:text-yellow-400 ${isActive ? "text-yellow-400 font-semibold" : "text-white"
                     }`
                   }
                 >
@@ -176,9 +178,8 @@ export default function Navbar() {
                     {categories.map((cat) => (
                       <button
                         key={cat._id}
-                        className={`text-left px-4 py-2 bg-gray-100 rounded-lg hover:bg-blue-100 hover:shadow transition text-sm font-medium text-gray-700 border border-gray-200 ${
-                          selectedCategory?._id === cat._id ? "bg-blue-200" : ""
-                        }`}
+                        className={`text-left px-4 py-2 bg-gray-100 rounded-lg hover:bg-blue-100 hover:shadow transition text-sm font-medium text-gray-700 border border-gray-200 ${selectedCategory?._id === cat._id ? "bg-blue-200" : ""
+                          }`}
                         onClick={() => handleCategorySelect(cat)}
                       >
                         <span className="truncate">{cat.name}</span>
@@ -190,19 +191,19 @@ export default function Navbar() {
             </li>
 
             <li>
-            <button
-  onClick={() => {
-    if (user?.role !== 'publisher') {
-      navigate("/apply-publisher");
-    } else {
-      toast.error('You are already a publisher');
-    }
-  }}
-  
-  className="px-4 py-2 bg-yellow-400 text-white rounded-full text-sm font-semibold shadow hover:bg-yellow-400 transition sm:min-w-32 md:min-w-40 lg:py-3 lg:max-w-24"
->
-  Apply as Publisher
-</button>
+              <button
+                onClick={() => {
+                  if (user?.role !== 'publisher') {
+                    navigate("/apply-publisher");
+                  } else {
+                    toast.error('You are already a publisher');
+                  }
+                }}
+
+                className="px-4 py-2 bg-yellow-400 text-white rounded-full text-sm font-semibold shadow hover:bg-yellow-400 transition sm:min-w-32 md:min-w-40 lg:py-3 lg:max-w-24"
+              >
+                Apply as Publisher
+              </button>
 
             </li>
           </ul>
@@ -260,7 +261,7 @@ export default function Navbar() {
         {/* Mobile Menu */}
         <div className="md:hidden relative">
           <button onClick={toggleMobileMenu} className="focus:outline-none">
-            <Menu size={52} className="text-white" />
+            <Menu size={28} className="mt-3 text-gray-300" />
           </button>
           {isMobileMenuOpen && (
             <div
@@ -290,9 +291,8 @@ export default function Navbar() {
                   <span>Explore Categories</span>
                   <ChevronDown
                     size={18}
-                    className={`transform transition-transform duration-200 ${
-                      isMobileExploreOpen ? "rotate-180" : ""
-                    }`}
+                    className={`transform transition-transform duration-200 ${isMobileExploreOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </button>
                 {isMobileExploreOpen && (
@@ -304,11 +304,10 @@ export default function Navbar() {
                           handleCategorySelect(cat);
                           setMobileMenuOpen(false);
                         }}
-                        className={`block w-full text-left px-3 py-2 text-sm rounded-lg transition ${
-                          selectedCategory?._id === cat._id
+                        className={`block w-full text-left px-3 py-2 text-sm rounded-lg transition ${selectedCategory?._id === cat._id
                             ? "bg-blue-200 text-blue-800 font-semibold"
                             : "hover:bg-blue-100"
-                        }`}
+                          }`}
                       >
                         {cat.name}
                       </button>
@@ -332,24 +331,46 @@ export default function Navbar() {
 
               {/* Auth */}
               <div className="border-t border-gray-200 pt-4">
-                {isLogin ? (
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-100 rounded-lg text-sm transition"
-                  >
-                    Logout
-                  </button>
-                ) : (
-                  <NavLink
-                    to="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center gap-3 px-4 py-2 hover:bg-blue-100 rounded-lg text-sm transition"
-                  >
-                    <LogIn size={18} />
-                    <span>Login</span>
-                  </NavLink>
-                )}
-              </div>
+  {isLogin ? (
+    <div className="flex items-center gap-4 border-t pt-4" ref={profileRef}>
+      <img
+        src={user?.avatar || defaultAvatar}
+        alt="Profile"
+        className="w-9 h-9 rounded-full border-2 border-blue-200 shadow cursor-pointer"
+        onClick={() => setProfileDropdownOpen((prev) => !prev)}
+      />
+      <div>
+        <button
+          onClick={() => {
+            navigate(`/user/${user._id}`);
+            setMobileMenuOpen(false);
+          }}
+          className="text-sm text-blue-700 font-medium hover:underline"
+        >
+          Profile
+        </button>
+        <button
+          onClick={handleLogout}
+          className="block text-sm text-red-600 mt-1 hover:underline"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+  ) : (
+    <SparkButton className="w-full">
+      <Link
+        to="/login"
+        className="flex items-center justify-center gap-2 font-medium text-sm p-2 w-full"
+        onClick={() => setMobileMenuOpen(false)}
+      >
+        <span>Login</span>
+        <LogIn size={16} className="text-gray-600" />
+      </Link>
+    </SparkButton>
+  )}
+</div>
+
             </div>
           )}
         </div>

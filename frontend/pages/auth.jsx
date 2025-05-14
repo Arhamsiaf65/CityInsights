@@ -8,7 +8,7 @@ import { SuccessToast, ErrorToast } from '../components/toast';
 const AuthPage = ({ type }) => {
   const isLogin = type === 'login';
   const navigate = useNavigate();
-  const { requestOTP, verifyOTPAndRegister, isOtpGenerating, login } = useContext(userContext);
+  const { requestOTP, verifyOTPAndRegister, isVerifyingOtp, isLoggingIn, isOtpGenerating, login } = useContext(userContext);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -168,21 +168,23 @@ const AuthPage = ({ type }) => {
               ) : null}
 
               <button type="submit" className="button sign-in">
-                {showReset
-                  ? requesting
+                {showReset ? (
+                  requesting
                     ? 'Requesting...'
                     : resetStep === 1
                       ? 'Send OTP'
                       : 'Reset Password'
-                  : isLogin
-                    ? 'Sign In'
-                    : otpSent
-                      ? 'Verify OTP'
-                      : isOtpGenerating
-                        ? 'Generating OTP...'
-                        : 'Send OTP'}
-
+                ) : isLogin ? (
+                  isLoggingIn ? 'Signing In...' : 'Sign In'
+                ) : otpSent ? (
+                  isVerifyingOtp ? 'Verifying...' : 'Verify OTP'
+                ) : isOtpGenerating ? (
+                  'Generating OTP...'
+                ) : (
+                  'Send OTP'
+                )}
               </button>
+
 
               <p className="footer">
                 {showReset ? (

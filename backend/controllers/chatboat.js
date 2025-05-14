@@ -132,7 +132,7 @@ router.post('/', async (req, res) => {
       model: 'gemini-2.0-flash',
       contents: [
         createUserContent([
-          `You're an assistant for City Insight (Sahiwal-based news platform).`,
+          `You're an assistant for City Insight (Sahiwal-based news platform) developed as fyp by students of cui sahiwal.`,
           `User context: ${context || 'No user data'}`,
           `User message: "${message}"`,
           `If the user wants DB results, reply with [FETCH:<intent>].`,

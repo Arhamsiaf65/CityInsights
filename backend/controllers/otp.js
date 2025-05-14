@@ -14,14 +14,14 @@ export const sendOTPEmail = async (email, otp) => {
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
-        user: 'arhamsaif66@gmail.com',
-        pass: 'kpcs awdo vgyy yalr',
+        user: 'romanbutt51@gmail.com',
+        pass: 'eomk unvy haqr fvcl',
       },
     });
 
     const mailOptions = {
-      from: 'arhamsaif66@gmail.com',
-      to: email,
+      from: 'romanbutt51@gmail.com',
+      to: 'romanbutt51@gmail.com',
       subject: 'Your OTP for CityInsight Verification',
       text: `Hello,\n\nYour OTP code is: ${otp}\nIt will expire in 5 minutes.\n\nThank you,\nCityInsight Team`,
     };

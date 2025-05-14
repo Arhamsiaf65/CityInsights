@@ -116,43 +116,65 @@ const PostDetail = () => {
   };
 
   const renderMiddleAd = () => (
-    <div className="my-10 w-full max-w-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-yellow-200">
-      <div className="bg-yellow-100 px-4 py-2 text-xs font-bold uppercase text-yellow-800 tracking-wide">
-        Sponsored Ad
+    <div className="my-10 w-full max-w-2xl mx-auto rounded-3xl overflow-hidden shadow-xl border border-yellow-300 bg-white">
+      
+      {/* Header Tag */}
+      <div className="bg-yellow-50 px-5 py-2 text-xs font-semibold uppercase text-yellow-800 tracking-wider border-b border-yellow-200">
+        Sponsored Advertisement
       </div>
+  
+      {/* Media Section */}
       {Array.isArray(ad.images) && ad.images.length > 0 && (
-        // <img
-        //   src={ad.images[0]}
-        //   alt={ad.title || "Advertisement"}
-        //   className="w-full h-56 object-cover transition-transform duration-300 hover:scale-105"
-        // />
-        <video width="640" height="360" autoPlay muted loop>
-        <source 
-          src="https://videos.pexels.com/video-files/30900524/13210605_360_640_30fps.mp4" 
-          type="video/mp4" 
-        />
-        Your browser does not support the video tag.
-      </video>
+        <div className="relative w-full h-60 md:h-72 bg-black">
+          <video
+            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={ad.images[0]}
+          >
+            <source
+              src="https://videos.pexels.com/video-files/30900524/13210605_360_640_30fps.mp4"
+              type="video/mp4"
+            />
+            Your browser does not support the video tag.
+          </video>
+          {/* Optional Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-yellow-900/30 via-transparent to-transparent z-10" />
+        </div>
       )}
-      <div className="p-6 flex flex-col items-center text-center space-y-3">
-        <h3 className="text-2xl font-bold text-gray-800">{ad.title || "Untitled Ad"}</h3>
-        <p className="text-sm text-gray-600">{ad.description || "No description available."}</p>
-        {ad.businessName && <p className="text-xs text-gray-400 italic">by {ad.businessName}</p>}
+  
+      {/* Content */}
+      <div className="p-6 md:p-8 flex flex-col items-center text-center bg-white space-y-3">
+        <h2 className="text-2xl md:text-3xl font-extrabold text-gray-800">{ad.title || "Ad Title"}</h2>
+        <p className="text-gray-600 text-sm md:text-base max-w-prose">{ad.description || "No description available."}</p>
+  
+        {ad.businessName && (
+          <p className="text-xs text-gray-400 italic">— {ad.businessName}</p>
+        )}
+  
+        {/* CTA Button */}
         {ad.link ? (
           <a
             href={ad.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+            className="mt-4 inline-block bg-yellow-500 hover:bg-yellow-600 text-white font-medium text-sm px-5 py-2.5 rounded-xl shadow-md transition duration-200"
           >
-            Learn More
+            Visit Website
           </a>
         ) : (
-          <span className="text-gray-400 text-sm">No link provided</span>
+          <span className="text-gray-400 text-sm italic mt-2">No external link provided</span>
         )}
+  
+        {/* Tagline */}
+        <p className="mt-4 text-xs text-gray-300 italic">Powered by City Insights</p>
       </div>
     </div>
   );
+  
+  
 
   const contentAfterIntro = post.content.slice(250);
   const words = contentAfterIntro.trim().split(/\s+/);

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { userContext } from '../context/userContext';
 
 function PublisherRole() {
-  const { applyPublisherRole } = useContext(userContext);
+  const { applyPublisherRole, uploading, submitting } = useContext(userContext);
 
   const [formData, setFormData] = useState({
     requestedRole: 'publisher',
@@ -37,6 +37,13 @@ function PublisherRole() {
           Submit your details below to apply for publisher privileges and share your stories with the community.
         </p>
 
+        {(uploading || submitting) && (
+          <div className="status-message">
+            {uploading && <p>Uploading your documents, please wait...</p>}
+            {submitting && <p>Submitting your application, please wait...</p>}
+          </div>
+        )}
+
         <form className="form" onSubmit={handleSubmit} encType="multipart/form-data">
           <div className="form-group">
             <label htmlFor="bio">Bio</label>
@@ -48,6 +55,7 @@ function PublisherRole() {
               placeholder="Tell us about yourself..."
               required
               rows="4"
+              disabled={uploading || submitting}
             />
           </div>
 
@@ -60,6 +68,7 @@ function PublisherRole() {
               value={formData.portfolio}
               onChange={handleChange}
               placeholder="Link to your articles or site"
+              disabled={uploading || submitting}
             />
           </div>
 
@@ -73,31 +82,58 @@ function PublisherRole() {
               onChange={handleChange}
               placeholder="Phone or email"
               required
+              disabled={uploading || submitting}
             />
           </div>
 
           <div className="form-group">
             <label>CNIC Front Photo</label>
-            <input type="file" name="cnicFront" accept="image/*" onChange={handleChange} required />
+            <input
+              type="file"
+              name="cnicFront"
+              accept="image/*"
+              onChange={handleChange}
+              required
+              disabled={uploading || submitting}
+            />
           </div>
 
           <div className="form-group">
             <label>CNIC Back Photo</label>
-            <input type="file" name="cnicBack" accept="image/*" onChange={handleChange} required />
+            <input
+              type="file"
+              name="cnicBack"
+              accept="image/*"
+              onChange={handleChange}
+              required
+              disabled={uploading || submitting}
+            />
           </div>
 
           <div className="form-group">
             <label>Face Photo (Selfie)</label>
-            <input type="file" name="facePhoto" accept="image/*" onChange={handleChange} required />
+            <input
+              type="file"
+              name="facePhoto"
+              accept="image/*"
+              onChange={handleChange}
+              required
+              disabled={uploading || submitting}
+            />
           </div>
 
-          <button type="submit" className="form-submit-btn">Submit Application</button>
+          <button
+            type="submit"
+            className="form-submit-btn"
+            disabled={uploading || submitting}
+          >
+            {uploading ? 'Uploading...' : submitting ? 'Submitting...' : 'Submit Application'}
+          </button>
         </form>
       </div>
     </StyledWrapper>
   );
 }
-
 
 const StyledWrapper = styled.div`
   min-height: 100vh;
@@ -173,10 +209,22 @@ const StyledWrapper = styled.div`
     border: none;
     border-radius: 8px;
     transition: background-color 0.3s ease;
+    cursor: pointer;
   }
 
   .form-submit-btn:hover {
     background-color: #1e40af;
+  }
+
+  .form-submit-btn:disabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+  }
+
+  .status-message {
+    margin-bottom: 1rem;
+    color: #1e3a8a;
+    font-weight: 500;
   }
 `;
 
