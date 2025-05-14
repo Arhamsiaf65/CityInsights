@@ -21,7 +21,7 @@ export const sendOTPEmail = async (email, otp) => {
 
     const mailOptions = {
       from: 'romanbutt51@gmail.com',
-      to: 'romanbutt51@gmail.com',
+      to: email,
       subject: 'Your OTP for CityInsight Verification',
       text: `Hello,\n\nYour OTP code is: ${otp}\nIt will expire in 5 minutes.\n\nThank you,\nCityInsight Team`,
     };

@@ -1,11 +1,11 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import Navbar from "../components/navBar";
-import { Search } from "lucide-react";
+import { AlignLeft, Dot, FileText, MapPin, Search, StickyNote } from "lucide-react";
 import PostCard from "../components/postCard";
 import { PostsContext } from "../context/postContext";
 import { userContext } from "../context/userContext";
 import { CategoriesContext } from "../context/categoriesContext";
-import { FaCheck, FaCross, FaFilter, FaCog } from "react-icons/fa";
+import { FaCheck, FaCross, FaFilter, FaCog, FaLocationArrow, FaSearchLocation, FaAddressBook } from "react-icons/fa";
 import { FiXCircle } from "react-icons/fi";
 import ScrollToTop from "../components/scrollToTop";
 import { AdContext } from "../context/addContext";
@@ -367,62 +367,66 @@ function Home() {
                   <React.Fragment key={post._id}>
                     {/* Insert ad after the 3rd post */}
                     {index === 4 && (
-             <div className="col-span-full">
-             <div className="relative w-full h-72 md:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-xl group">
-               
-               {/* Video Background */}
-               <video
-                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
-                 autoPlay
-                 muted
-                 loop
-                 playsInline
-                 poster={ad.images[0]}
-               >
-                 <source src={ad.images[0]} type="video/mp4" />
-                 Your browser does not support the video tag.
-               </video>
-           
-               {/* Fallback Image (if video fails or is disabled) */}
-               <img
-                 src={ad.images[0]}
-                 alt="Ad Preview"
-                 className="absolute inset-0 w-full h-full object-cover"
-                 style={{ display: 'none' }} // JS fallback could be used if needed
-               />
-           
-               {/* Overlay Gradient for readability */}
-               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent z-10" />
-           
-               {/* Content */}
-               <div className="relative z-20 p-6 md:p-8 flex flex-col justify-end h-full text-white">
-                 <div>
-                   <h2 className="text-2xl md:text-3xl font-bold leading-tight mb-1 drop-shadow">
-                     {ad.title}
-                   </h2>
-                   <p className="text-sm md:text-base mb-2 line-clamp-3 opacity-90">
-                     {ad.description}
-                   </p>
-                   <p className="text-xs italic opacity-80">📍 {ad.address}</p>
-                 </div>
-           
-                 {/* Button and Sponsor */}
-                 <div className="mt-4 flex items-center justify-between">
-                   {ad.link && (
-                     <a
-                       href={ad.link}
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition"
-                     >
-                       Visit Website
-                     </a>
-                   )}
-                   <p className="text-xs text-gray-300 italic">Sponsored by Insights</p>
-                 </div>
+           <div className="col-span-full">
+           <div className="relative w-full h-72 sm:h-80 md:h-96 lg:h-[28rem] rounded-3xl overflow-hidden shadow-2xl group transition-all duration-500 ease-in-out">
+             
+             {/* Video Background */}
+             <video
+               className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-in-out"
+               autoPlay
+               muted
+               loop
+               playsInline
+               poster={ad.images[0]}
+             >
+               <source src={ad.images[0]} type="video/mp4" />
+               Your browser does not support the video tag.
+             </video>
+         
+             {/* Fallback Image */}
+             <img
+               src={ad.images[0]}
+               alt="Ad Preview"
+               className="absolute inset-0 w-full h-full object-cover hidden"
+             />
+         
+             {/* Gradient Overlay */}
+             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent z-10" />
+         
+             {/* Content Area with Scroll on Overflow */}
+             <div className="relative z-20 p-5 sm:p-6 flex flex-col justify-end h-full text-white overflow-hidden">
+               <div className="overflow-y-auto max-h-[65%] pr-1 custom-scrollbar">
+                 <h2 className="text-2xl sm:text-3xl font-extrabold mb-2 leading-snug drop-shadow-md">
+                   {ad.title}
+                 </h2>
+                 <p className="text-sm sm:text-base leading-relaxed flex gap-2 text-gray-200 mb-2 whitespace-pre-line items-center">
+                  <Dot size={16} />
+                   {ad.description}
+                 </p>
+                 <p className="text-xs italic text-gray-300 mb-2 flex gap-2 items-center"><MapPin size={16} /> {ad.address}</p>
+               </div>
+         
+               {/* CTA and Sponsor */}
+               <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                 {ad.link && (
+                   <a
+                     href={ad.link}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-lg transition-all"
+                   >
+                      Visit Website
+                   </a>
+                 )}
+                 <p className="text-xs text-gray-400 italic sm:ml-auto">
+                   Sponsored by City Insights
+                 </p>
                </div>
              </div>
            </div>
+         </div>
+         
+         
            
            
 

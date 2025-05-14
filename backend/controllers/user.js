@@ -38,6 +38,7 @@ router.post('/request-otp', upload.single('profilePic'), async (req, res) => {
     );
 
     await sendOTPEmail(email, otp);
+    console.log("otp sent");
     res.status(200).json({ success: true, message: "OTP sent to email" });
 
   } catch (err) {
