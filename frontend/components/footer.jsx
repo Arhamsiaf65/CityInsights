@@ -2,6 +2,7 @@ import { Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react"
 import { useContext, useState } from "react";
 import { CategoriesContext } from "../context/categoriesContext";
 import { Link } from "react-router-dom";
+import { FaFacebook, FaInstagram, FaTwitter } from "react-icons/fa";
 
 const translations = {
   en: {
@@ -15,6 +16,7 @@ const translations = {
     aboutPage: "About",
     contactPage: "Contact",
     publisher: "Apply for Publisher",
+    quickLinksDescription: "Stay informed with our most important links. Whether you're looking to learn about us, get in touch, or become a publisher—everything is just a click away.",
   },
   ur: {
     about: "سٹی انسائٹ آپ کا کمیونٹی پر مبنی پلیٹ فارم ہے جہاں مقامی کہانیاں، جائزے اور روابط دستیاب ہیں۔ ہمارے ساتھ اپنی شہر کو نئے انداز سے دریافت کریں۔",
@@ -27,6 +29,7 @@ const translations = {
     aboutPage: "ہمارے بارے میں",
     contactPage: "رابطہ کریں",
     publisher: "پبلشر کے لیے درخواست دیں",
+    quickLinksDescription: "ہماری سب سے اہم روابط سے باخبر رہیں۔ چاہے آپ ہمارے بارے میں جاننا چاہتے ہوں، رابطہ کرنا ہو، یا پبلشر بننا چاہتے ہوں—سب کچھ صرف ایک کلک کی دوری پر ہے۔",
   },
   pa: {
     about: "سٹی انسائٹ تھوڑا کمیونٹی-پاورڈ پلیٹفارم اے، جتھے تسی لوکل کہانیاں، ریویوز تے کنیکشنز لبھ سکدے او۔ ساڈے نال آپنا شہر نوّیں طریقے نال ویکھو۔",
@@ -39,8 +42,10 @@ const translations = {
     aboutPage: "ساڈے بارے",
     contactPage: "رابطہ کرو",
     publisher: "پبلشر لئی درخواست دو",
+    quickLinksDescription: "ساڈیاں سب توں اہم لنکس نال باخبر رہو۔ جے تسی ساڈے بارے جاننا، رابطہ کرنا یا پبلشر بننا چاندے او—سب کج اک کلک تے دستیاب اے۔",
   },
 };
+
 
 export default function Footer() {
   const { categories } = useContext(CategoriesContext);
@@ -49,7 +54,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-[#2F5191] text-white px-6 py-16 mt-12">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:px-16 sm:grid-cols-3 md:grid-cols-4 gap-10">
 
         {/* About */}
         <div>
@@ -61,6 +66,26 @@ export default function Footer() {
             <div className="flex items-center gap-2"><MapPin size={16} /> Sahiwal, Pakistan</div>
           </div>
         </div>
+
+         {/* Quick Links */}
+<div className="flex flex-col gap-5">
+  <div>
+    <h3 className="text-lg font-semibold text-yellow-400 mb-4">{t.links}</h3>
+    <ul className="space-y-2 text-sm text-gray-200">
+      <li><Link to="/" className="hover:text-yellow-300 transition">{t.home}</Link></li>
+      <li><Link to="/about" className="hover:text-yellow-300 transition">{t.aboutPage}</Link></li>
+      <li><Link to="/contact" className="hover:text-yellow-300 transition">{t.contactPage}</Link></li>
+      <li><Link to="/apply-publisher" className="hover:text-yellow-300 transition">{t.publisher}</Link></li>
+    </ul>
+  </div>
+
+  {/* Additional Description Below Quick Links */}
+  <div>
+    <p className="text-sm text-gray-300 leading-relaxed">
+      {t.quickLinksDescription}
+    </p>
+  </div>
+</div>
 
         {/* Categories */}
         <div>
@@ -76,22 +101,37 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Quick Links */}
-        <div>
-          <h3 className="text-lg font-semibold text-yellow-400 mb-4">{t.links}</h3>
-          <ul className="space-y-2 text-sm text-gray-200">
-            <li><Link to="/" className="hover:text-yellow-300 transition">{t.home}</Link></li>
-            <li><Link to="/about" className="hover:text-yellow-300 transition">{t.aboutPage}</Link></li>
-            <li><Link to="/contact" className="hover:text-yellow-300 transition">{t.contactPage}</Link></li>
-            <li><Link to="/apply-publisher" className="hover:text-yellow-300 transition">{t.publisher}</Link></li>
-          </ul>
-        </div>
+      
+
 
         {/* Vision */}
+        <div className="flex flex-col gap-10">
         <div>
-          <h3 className="text-lg font-semibold text-yellow-400 mb-4">{t.visionTitle}</h3>
+        <h3 className="text-lg font-semibold text-yellow-400 mb-4">{t.visionTitle}</h3>
           <p className="text-sm text-gray-300 leading-relaxed">{t.vision}</p>
         </div>
+
+
+          <div>
+            <h3 className="text-lg font-semibold text-yellow-400 mb-4">Follow Us On</h3>
+            <div className="flex space-x-4">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-yellow-300 transition">
+                <FaFacebook size={20} />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-yellow-300 transition">
+                <FaTwitter size={20} />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-yellow-300 transition">
+                <FaInstagram size={20} />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* social media icons */}
+        {/* Social Media */}
+
+
       </div>
 
       {/* Language Switcher */}

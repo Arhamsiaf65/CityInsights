@@ -26,7 +26,6 @@ export default function Navbar() {
 
   const { login, logout, user, isLogin } = useContext(userContext);
   const { categories } = useContext(CategoriesContext);
-
   const mobileMenuRef = useRef(null);
   const exploreMenuRef = useRef(null);
   const profileRef = useRef(null);
@@ -258,122 +257,117 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu */}
-        <div className="md:hidden relative">
-          <button onClick={toggleMobileMenu} className="focus:outline-none">
-            <Menu size={28} className="mt-3 text-gray-300" />
-          </button>
-          {isMobileMenuOpen && (
-            <div
-              ref={mobileMenuRef}
-              className="absolute -right-6 mt-4 w-72 bg-white border border-gray-200 text-blue-900 rounded-2xl shadow-2xl z-50 p-5 animate-slide-down space-y-5"
+   {/* Mobile Menu */}
+<div className="md:hidden   ">
+  <button onClick={toggleMobileMenu} className="focus:outline-none">
+    <Menu size={28} className="text-white" />
+  </button>
+
+  {isMobileMenuOpen && (
+    <div
+      ref={mobileMenuRef}
+      className="absolute right-0 top-14  mt-5 sm:mt-0  bg-white text-blue-900 rounded-xl shadow-2xl border border-gray-200 animate-slide-down"
+    >
+      <div className="p-4 space-y-4  overflow-y-auto">
+        {/* Navigation links */}
+        <div className="space-y-2">
+          {navItems.map(({ to, label, icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-2 hover:bg-blue-100 rounded-lg transition text-sm font-medium"
             >
-              <div className="space-y-2">
-                {navItems.map(({ to, label, icon }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2 hover:bg-blue-100 hover:scale-[1.02] active:scale-100 rounded-lg transition-all duration-200 text-sm font-medium"
-                  >
-                    {icon}
-                    <span>{label}</span>
-                  </NavLink>
-                ))}
-              </div>
+              {icon}
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </div>
 
-              {/* Explore Mobile */}
-              <div className="border-t border-gray-200 pt-4 space-y-3">
+        {/* Explore dropdown */}
+        <div className="border-t border-gray-200 pt-4">
+          <button
+            onClick={() => setMobileExploreOpen((prev) => !prev)}
+            className="flex items-center justify-between w-full px-4 py-2 rounded-lg hover:bg-blue-100 transition text-sm font-semibold"
+          >
+            <span>Explore Categories</span>
+            <ChevronDown className={`transition-transform ${isMobileExploreOpen ? "rotate-180" : ""}`} />
+          </button>
+
+          {isMobileExploreOpen && (
+            <div className="mt-2 pl-4 pr-2 space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+              {categories.map((cat) => (
                 <button
-                  onClick={() => setMobileExploreOpen((prev) => !prev)}
-                  className="flex items-center cursor-pointer justify-between w-full px-4 py-2 hover:bg-blue-100 rounded-lg transition text-sm font-semibold"
+                  key={cat._id}
+                  onClick={() => handleCategorySelect(cat)}
+                  className="w-full text-left px-3 py-2 text-sm bg-gray-100 rounded-lg hover:bg-blue-100 transition border border-gray-200"
                 >
-                  <span>Explore Categories</span>
-                  <ChevronDown
-                    size={18}
-                    className={`transform transition-transform duration-200 ${isMobileExploreOpen ? "rotate-180" : ""
-                      }`}
-                  />
+                  {cat.name}
                 </button>
-                {isMobileExploreOpen && (
-                  <div className="pl-3 pr-2 max-h-52 overflow-y-auto custom-scrollbar space-y-2">
-                    {categories.map((cat) => (
-                      <button
-                        key={cat._id}
-                        onClick={() => {
-                          handleCategorySelect(cat);
-                          setMobileMenuOpen(false);
-                        }}
-                        className={`block w-full text-left px-3 py-2 text-sm rounded-lg transition ${selectedCategory?._id === cat._id
-                            ? "bg-blue-200 text-blue-800 font-semibold"
-                            : "hover:bg-blue-100"
-                          }`}
-                      >
-                        {cat.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Apply */}
-              <div className="border-t border-gray-200 pt-4">
-                <button
-                  onClick={() => {
-                    navigate("/apply-publisher");
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full bg-yellow-400 hover:bg-yellow-300 text-white font-semibold py-2 px-4 rounded-full text-sm shadow-md transition-all duration-200"
-                >
-                  Apply for Publisher
-                </button>
-              </div>
-
-              {/* Auth */}
-              <div className="border-t border-gray-200 pt-4">
-  {isLogin ? (
-    <div className="flex items-center gap-4 border-t pt-4" ref={profileRef}>
-      <img
-        src={user?.avatar || defaultAvatar}
-        alt="Profile"
-        className="w-9 h-9 rounded-full border-2 border-blue-200 shadow cursor-pointer"
-        onClick={() => setProfileDropdownOpen((prev) => !prev)}
-      />
-      <div>
-        <button
-          onClick={() => {
-            navigate(`/user/${user._id}`);
-            setMobileMenuOpen(false);
-          }}
-          className="text-sm text-blue-700 font-medium hover:underline"
-        >
-          Profile
-        </button>
-        <button
-          onClick={handleLogout}
-          className="block text-sm text-red-600 mt-1 hover:underline"
-        >
-          Logout
-        </button>
-      </div>
-    </div>
-  ) : (
-    <SparkButton className="w-full">
-      <Link
-        to="/login"
-        className="flex items-center justify-center gap-2 font-medium text-sm p-2 w-full"
-        onClick={() => setMobileMenuOpen(false)}
-      >
-        <span>Login</span>
-        <LogIn size={16} className="text-gray-600" />
-      </Link>
-    </SparkButton>
-  )}
-</div>
-
+              ))}
             </div>
           )}
         </div>
+
+        {/* Publisher Button */}
+        <div className="pt-4 border-t border-gray-200">
+          <button
+            onClick={() => {
+              if (user?.role !== 'publisher') {
+                navigate("/apply-publisher");
+              } else {
+                toast.error('You are already a publisher');
+              }
+              setMobileMenuOpen(false);
+            }}
+            className="w-full px-4 py-2 text-center bg-yellow-400 text-white rounded-full font-semibold hover:bg-yellow-500 transition"
+          >
+            Apply as Publisher
+          </button>
+        </div>
+
+        {/* Profile or Login */}
+        <div className="pt-4 border-t border-gray-200">
+          {isLogin ? (
+            <div className="flex items-center gap-3 px-4 py-2">
+              <img
+                src={user?.avatar || defaultAvatar}
+                className="w-9 h-9 rounded-full border"
+                alt="user"
+              />
+              <div className="flex-1">
+                <button
+                  onClick={() => {
+                    navigate(`/user/${user._id}`);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left text-sm font-semibold hover:text-blue-600"
+                >
+                  Profile
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left text-sm text-red-600 hover:underline mt-1"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="block text-center px-4 py-2 font-semibold text-sm text-white bg-blue-600 rounded-full hover:bg-blue-700 transition"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Login
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  )}
+</div>
+
       </nav>
     </div>
   );

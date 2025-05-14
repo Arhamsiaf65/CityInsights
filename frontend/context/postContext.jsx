@@ -23,30 +23,30 @@ export function PostsProvider({ children }) {
   const isFetchingRef = useRef(false);
   const loadTriggerRef = useRef();
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isFetchingRef.current) {
-          fetchPosts(categorySlug, search);
-        }
-      },
-      {
-        root: null,
-        rootMargin: "0px",
-        threshold: 1.0,
-      }
-    );
+  // useEffect(() => {
+  //   const observer = new IntersectionObserver(
+  //     (entries) => {
+  //       if (entries[0].isIntersecting && hasMore && !isFetchingRef.current) {
+  //         fetchPosts(categorySlug, search);
+  //       }
+  //     },
+  //     {
+  //       root: null,
+  //       rootMargin: "0px",
+  //       threshold: 1.0,
+  //     }
+  //   );
   
-    if (loadTriggerRef.current) {
-      observer.observe(loadTriggerRef.current);
-    }
+  //   if (loadTriggerRef.current) {
+  //     observer.observe(loadTriggerRef.current);
+  //   }
   
-    return () => {
-      if (loadTriggerRef.current) {
-        observer.unobserve(loadTriggerRef.current);
-      }
-    };
-  }, [loadTriggerRef, hasMore]);
+  //   return () => {
+  //     if (loadTriggerRef.current) {
+  //       observer.unobserve(loadTriggerRef.current);
+  //     }
+  //   };
+  // }, [loadTriggerRef, hasMore]);
   
 
   const fetchPosts = async (categorySlug, search = "") => {
@@ -161,20 +161,20 @@ export function PostsProvider({ children }) {
   
 
   // Handle scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      const isBottom =
-        window.innerHeight + document.documentElement.scrollTop >=
-        document.documentElement.offsetHeight - 100;
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     const isBottom =
+  //       window.innerHeight + document.documentElement.scrollTop >=
+  //       document.documentElement.offsetHeight - 100;
   
-      if (isBottom) {
-        fetchPosts();
-      }
-    };
+  //     if (isBottom) {
+  //       fetchPosts();
+  //     }
+  //   };
   
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [skip, hasMore, loading]);
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => window.removeEventListener("scroll", handleScroll);
+  // }, [skip, hasMore, loading]);
 
   // Fetch comments for a specific post
   const fetchComments = async (postId) => {
