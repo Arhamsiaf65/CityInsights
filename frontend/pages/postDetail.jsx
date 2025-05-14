@@ -14,7 +14,6 @@ import { AdContext } from "../context/addContext";
 
 const PostDetail = () => {
   const { popularPosts, posts, likePost, sharePost, comments, postComment, fetchComments, postView, isLoading } = useContext(PostsContext);
-  console.log(posts);
   const { isLogin, user } = useContext(userContext);
   const { ad } = useContext(AdContext);
 
@@ -201,6 +200,8 @@ const PostDetail = () => {
           </div>
         </div>
 
+
+
         <div className="flex flex-col lg:flex-row gap-8 mb-10">
           {post.images?.[0] && (
             <div className="flex-shrink-0 w-full lg:w-1/2 overflow-hidden rounded-xl shadow-md">
@@ -212,10 +213,49 @@ const PostDetail = () => {
             </div>
           )}
 
+          
+
           <div className="w-full lg:w-1/2 text-gray-700 text-base sm:text-lg leading-relaxed">
             {post.content.slice(0, 250)}...
           </div>
         </div>
+
+    {/* do tags and action buttons here also */}
+    <div className="flex flex-wrap items-center gap-4 text-gray-400 text-sm mt-8">
+          {post.tags?.length > 0 && (
+            <div className="flex gap-2">
+              {post.tags.map((tag, idx) => (
+                <span key={idx} className="bg-gray-100 px-2 py-1 rounded-full">#{tag}</span>
+              ))}
+            </div>
+          )}
+          <div className="flex items-center gap-4">
+          <button
+  onClick={() => {
+    if (!user?._id) {
+      toast.error("Login to do interactions");
+    } else {
+      likePost(post._id, user._id);
+    }
+  }}
+  className={`flex cursor-pointer gap-1 items-center hover:text-blue-600 transition ${post.isLiked ? "text-blue-600" : ""}`}
+>
+  <FaThumbsUp /> {post.likes}
+</button>
+
+            <button onClick={() => handleShareClick("facebook", post._id)} className="cursor-pointer flex items-center gap-1 hover:text-blue-600">
+              <FaFacebook /> {post.shares}
+            </button>
+            <button onClick={() => handleShareClick("whatsapp", post._id)} className="cursor-pointer hover:text-green-600">
+              <FaWhatsapp />
+            </button>
+            <button onClick={() => handleShareClick("linkedin", post._id)} className="cursor-pointer hover:text-blue-700">
+              <FaLinkedin />
+            </button>
+          </div>
+        </div>
+
+
 
         {/* Full Content */}
         <div className="text-gray-700 leading-relaxed space-y-5 text-base sm:text-lg border-t pt-6">
@@ -249,64 +289,42 @@ const PostDetail = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => user._id && likePost(post._id, user._id)}
-              className={`flex gap-1 items-center hover:text-blue-600 transition ${post.isLiked ? "text-blue-600" : ""}`}
+              className={`flex cursor-pointer gap-1 items-center hover:text-blue-600 transition ${post.isLiked ? "text-blue-600" : ""}`}
             >
               <FaThumbsUp /> {post.likes }
             </button>
-            <button onClick={() => handleShareClick("facebook", post._id)} className="flex gap-1 hover:text-blue-600">
+            <button onClick={() => handleShareClick("facebook", post._id)} className="cursor-pointer flex gap-1 hover:text-blue-600">
               <FaFacebook /> {post.shares}
             </button>
-            <button onClick={() => handleShareClick("whatsapp", post._id)} className="hover:text-green-600">
+            <button onClick={() => handleShareClick("whatsapp", post._id)} className="cursor-pointer hover:text-green-600">
               <FaWhatsapp />
             </button>
-            <button onClick={() => handleShareClick("linkedin", post._id)} className="hover:text-blue-700">
+            <button onClick={() => handleShareClick("linkedin", post._id)} className="cursor-pointer hover:text-blue-700">
               <FaLinkedin />
             </button>
           </div>
         </div>
 
         {/* Comments Section */}
-        <div className="mt-10 border-t pt-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Comments</h2>
-          {comments.length === 0 ? (
-            <p className="text-gray-500">No comments yet. Be the first to comment!</p>
-          ) : (
-            <div className="space-y-4">
-              {Array.isArray(comments) && comments.length === 0 ? (
-                <p className="text-gray-500">No comments yet. Be the first to comment!</p>
-              ) : (
-                <div className="space-y-4">
-                  {Array.isArray(comments) && comments.slice(0, visibleComments).map((comment) => (
-                    <div key={comment._id} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
-                      <img
-                        src={comment.user.avatar || defaultAvatar}
-                        alt={comment.user.name}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <div>
-                        <div className="font-semibold text-gray-800">{comment.user.name}</div>
-                        <p className="text-gray-700 mt-1">{comment.content}</p>
-                        <div className="text-xs text-gray-400 mt-1">
-                          {new Date(comment.createdAt).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {visibleComments < comments.length && (
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => setVisibleComments((prev) => prev + 3)}
-                    className="mt-4 px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-700 transition"
-                  >
-                    Load More Comments
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+        {Array.isArray(comments) && comments.slice(0, visibleComments).map((comment) => {
+  const user = comment.user || {}; // fallback if user is null
+  return (
+    <div key={comment._id} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg shadow-sm">
+      <img
+        src={user.avatar || defaultAvatar}
+        alt={user.name || 'Anonymous'}
+        className="w-10 h-10 rounded-full object-cover"
+      />
+      <div>
+        <div className="font-semibold text-gray-800">{user.name || 'Anonymous'}</div>
+        <p className="text-gray-700 mt-1">{comment.content}</p>
+        <div className="text-xs text-gray-400 mt-1">
+          {new Date(comment.createdAt).toLocaleString()}
         </div>
+      </div>
+    </div>
+  );
+})}
 
         {/* Add Comment */}
         <div className="mt-10 border-t pt-6">

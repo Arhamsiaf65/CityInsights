@@ -68,7 +68,7 @@ function Category() {
               <button
                 key={option}
                 onClick={() => setSortOption(option)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all shadow ${
+                className={`px-4 cursor-pointer py-2 rounded-full text-sm font-medium transition-all shadow ${
                   sortOption === option
                     ? 'bg-blue-600 text-white'
                     : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
@@ -84,7 +84,7 @@ function Category() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => setShowFeaturedOnly((prev) => !prev)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-all ${
+            className={`flex items-center cursor-pointer gap-2 px-4 py-2 rounded-lg shadow transition-all ${
               showFeaturedOnly
                 ? 'bg-blue-600 text-white'
                 : 'bg-white border border-blue-600 text-blue-600 hover:bg-blue-50'

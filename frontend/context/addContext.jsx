@@ -12,7 +12,6 @@ export const AdProvider = ({ children }) => {
             const res = await fetch(`${baseUrl}/add`);
             if (!res.ok) throw new Error(`Error: ${res.status}`);
             const data = await res.json();
-            console.log("data of adds", data);
             setAds(data);
         } catch (err) {
             console.log("error fetching ads", err.message);

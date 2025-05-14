@@ -86,8 +86,8 @@ function Home() {
       <button
         onClick={() => setIsFilterOpen(!isFilterOpen)}
         className={`hidden lg:flex fixed  left-2 z-50 transform -translate-y-1/2 
-    bg-blue-600 text-white p-3 rounded-full shadow transition-transform duration-300 
-  animate-spin ${isFilterOpen ? "top-[0.8]" : "top-1/2"}`}
+    bg-blue-600 text-white p-3 rounded-full shadow transition-transform duration-600 
+  animate-spin top-1/2`}
       >
         <FaCog size={20} />
       </button>

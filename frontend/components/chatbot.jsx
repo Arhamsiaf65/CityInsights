@@ -71,15 +71,16 @@ const Chatbot = () => {
     };
 
     return (
-        <div className="w-full h-[85vh] max-h-[90vh] p-4 shadow-2xl rounded-2xl bg-white border border-gray-200 flex flex-col sm:max-w-xl">
+        <div className="w-full h-[80vh] sm:h-[85vh]  max-h-[90vh] p-3 sm:p-4 shadow-2xl rounded-2xl bg-white border border-gray-200 flex flex-col sm:max-w-xl">
+            <div className="text-lg sm:text-2xl font-semibold mb-3 sm:mb-4 text-blue-600">
+                🤖 City Insight Chatbot
+            </div>
 
-            <div className="text-2xl font-semibold mb-4 text-blue-600">🤖 City Insight Chatbot</div>
-
-            <div className="flex-1 overflow-y-auto max-h-[75vh] px-2 py-3 space-y-3 bg-gray-50 rounded-lg border">
+            <div className="flex-1 overflow-y-auto max-h-[65vh] sm:max-h-[75vh] px-2 py-3 space-y-3 bg-gray-50 rounded-lg border">
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div
-                            className={`max-w-[75%] px-4 py-2 rounded-2xl whitespace-pre-wrap text-sm shadow-sm ${msg.from === 'user'
+                            className={`max-w-[85%] sm:max-w-[75%] px-3 py-2 rounded-2xl whitespace-pre-wrap text-sm shadow-sm ${msg.from === 'user'
                                 ? 'bg-blue-500 text-white rounded-br-none'
                                 : 'bg-gray-200 text-gray-900 rounded-bl-none'
                                 }`}
@@ -96,35 +97,39 @@ const Chatbot = () => {
                                     })}
                                 </p>
                             ))}
-
-
                         </div>
                     </div>
                 ))}
                 <div ref={messagesEndRef} />
             </div>
 
-            <div className="mt-4 flex items-center gap-2">
-                <input
-                    type="text"
-                    className="flex-1 px-4 py-2 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                    placeholder="Type your message..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    disabled={loading}
-                />
-                <button
-                    onClick={sendMessage}
-                    disabled={loading}
-                    className="p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition"
-                >
-                    <SendHorizonal size={20} />
-                </button>
-            </div>
+            <div className="mt-3 w-full relative">
+  <input
+    type="text"
+    className="w-full pr-14 pl-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm placeholder:text-gray-500 transition"
+    placeholder="Type your message..."
+    value={input}
+    onChange={(e) => setInput(e.target.value)}
+    onKeyDown={handleKeyPress}
+    disabled={loading}
+  />
+
+  <button
+    onClick={sendMessage}
+    disabled={loading}
+    className="absolute right-1 top-1 bottom-1 px-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 active:scale-95 text-white rounded-full flex items-center justify-center shadow-md transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    <SendHorizonal size={18} />
+  </button>
+</div>
+
+
+
+
 
             {loading && <p className="text-xs text-gray-500 mt-2 text-right italic">Thinking...</p>}
         </div>
+
     );
 };
 

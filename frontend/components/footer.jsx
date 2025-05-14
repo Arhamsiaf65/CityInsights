@@ -97,7 +97,7 @@ export default function Footer() {
       {/* Language Switcher */}
       <div className="mt-10 flex justify-center">
         <select
-          className="bg-[#24407A] text-white px-4 py-2 rounded-md text-sm border border-gray-400"
+          className="bg-[#24407A] cursor-pointer text-white px-4 py-2 rounded-md text-sm border border-gray-400"
           value={lang}
           onChange={(e) => setLang(e.target.value)}
         >

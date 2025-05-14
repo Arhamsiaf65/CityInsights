@@ -81,10 +81,19 @@ const extractAuthorName = (msg) => {
 };
 
 const extractTagOrCategory = (msg) => {
-  const tag = msg.match(/(?:tagged with|in tag) ([a-z0-9\- ]+)/i);
-  const cat = msg.match(/(?:category|under category|in category | about) ([a-z0-9\- ]+)/i);
-  return tag?.[1] || cat?.[1] || null;
+  // Match tags
+  const tag = msg.match(/(?:tagged with |tag|in tag|about tag|on tag|related to tag|tags?)\s*[:\-]?\s*([a-z0-9\- ]+)/i);
+  
+  // Match categories
+  const cat = msg.match(/(?:category|under category|in category|about category|related to category|categories?)\s*[:\-]?\s*([a-z0-9\- ]+)/i);
+
+  // Match keywords like "security" (or any other topic)
+  const keyword = msg.match(/(?:posts about|related to|concerning|on)\s*([a-z0-9\- ]+)/i);
+  
+  // Return the first valid match (priority order: tag > category > keyword)
+  return tag?.[1] || cat?.[1] || keyword?.[1] || null;
 };
+
 
 // ✨ FAQs
 const faqKeywords = [
@@ -110,6 +119,24 @@ const faqAnswers = (msg) => {
   return null;
 };
 
+function extractPostTitle(message) {
+  // Look for titles wrapped in quotes (single or double)
+  const match = message.match(/['"`](.*?)['"`]/); // Match any text inside quotes (including single quotes)
+  if (match) return match[1].trim();
+
+  // Alternatively, check for messages like "Tell me about XYZ post"
+  const lowerMessage = message.toLowerCase();
+  if (lowerMessage.includes('about') || lowerMessage.includes('the title of')) {
+    const parts = message.split(/about|title of/i);
+    if (parts[1]) return parts[1].trim();
+  }
+
+  // If no specific title is identified, return null
+  return null;
+}
+
+
+
 // ✅ MAIN ROUTE
 router.post('/', async (req, res) => {
   const { message, userId } = req.body;
@@ -132,18 +159,16 @@ router.post('/', async (req, res) => {
       model: 'gemini-2.0-flash',
       contents: [
         createUserContent([
-          `You're an assistant for City Insight (Sahiwal-based news platform) developed as fyp by students of cui sahiwal.`,
+          `You're an assistant for City Insight (Sahiwal-based news platform) developed as FYP by students of CUI Sahiwal.`,
           `User context: ${context || 'No user data'}`,
           `User message: "${message}"`,
           `If the user wants DB results, reply with [FETCH:<intent>].`,
-          `Valid intents: latest posts, posts by author, posts by tag or category, platform info, user info.`,
-          `this is developed by alisha, roman, and laiba`,
+          `Valid intents: latest posts, posts by author, posts by tag or category, post by title, platform info, user info.`,
+          `This is developed by Alisha, Roman, and Laiba.`,
           `Examples of user info: "What is my role?", "Am I a publisher?", "Tell me about myself."`,
-          `If the user wants DB results, reply with [FETCH:<intent>].`,
-          `if you fail to detect intent, do NOT reply with fetch. Give a helpful natural reply instead.`,
-          `if the user asks like posts about security do valid intent as posts by tag or category`,
-          `Valid intents: latest posts, posts by author, posts by tag or category, platform info, user info.`
-
+          `If you fail to detect intent, do NOT reply with fetch. Give a helpful natural reply instead.`,
+          `If the user asks about a specific post like "Tell me about 'Theft in Sahiwal'" or includes the post title in quotes, reply with [FETCH:post by title].`,
+          `If the user asks like "posts about security", do valid intent as posts by tag or category.`,
         ]),
       ],
     });
@@ -155,78 +180,87 @@ router.post('/', async (req, res) => {
     // ✨ Handle intent if AI returned [FETCH:<intent>]
     const intentMatch = reply.match(/\[FETCH:(.*?)\]/i);
 
-    if (intentMatch) {
-      const intent = intentMatch[1].toLowerCase().trim();
 
-      switch (intent) {
-        case 'latest posts': {
-          try {
-            const postsList = await post
-              .find()
-              .sort({ createdAt: -1 })
-              .limit(5)
-              .populate('author', 'name');
+if (intentMatch) {
+  const intent = intentMatch[1].toLowerCase().trim();
 
-            const summary = postsList.map(p => `• ${p.title} — by ${p.author.name} [${p.category}]`).join('\n');
-            return res.json({ reply: `📰 Latest posts:\n${summary}` });
-          } catch (error) {
-            console.error(error);
-            return res.json({ reply: '❌ Error fetching latest posts.' });
-          }
-        }
-
-        case 'user info': {
-          if (!userId) return res.json({ reply: "⚠️ You're not logged in, so I can't fetch your role or profile." });
-
-          const currentUser = await user.findById(userId).select('name role');
-          if (!currentUser) return res.json({ reply: "❌ User not found." });
-
-          return res.json({ reply: `👤 Your name is *${currentUser.name}* and your role is *${currentUser.role}*.` });
-        }
-
-
-        case 'posts by author': {
-          const name = extractAuthorName(message);
-          if (!name) return res.json({ reply: "❌ Couldn't identify the author's name." });
-
-          const authors = await user.find({ name: { $regex: name, $options: 'i' } });
-          if (!authors.length) return res.json({ reply: `❌ No author found with name "${name}".` });
-
-          const posts = await post.find({ author: { $in: authors.map(a => a._id) } }).populate('author');
-          if (!posts.length) return res.json({ reply: `⚠️ No posts by "${name}".` });
-
-          const summary = posts.map(p => `🔹 *${p.title}* by ${p.author.name}`).join('\n');
-          return res.json({ reply: summary });
-        }
-
-        case 'posts by tag or category': {
-          const keyword = extractTagOrCategory(message);
-          if (!keyword) return res.json({ reply: "❓ Please specify a tag or category. Posts in category/tag security" });
-        
-          console.log("finding posts by category");
-        
-          // First, populate the category field and then apply regex on tags or category name
-          const posts = await post.find({
-            $or: [
-              { tags: { $regex: new RegExp(keyword, 'i') } }, // regex search on tags
-              { category: { $in: await category.find({ name: { $regex: new RegExp(keyword, 'i') } }).select('_id') } } // regex search on category name
-            ]
-          }).limit(5);
-        
-          if (!posts.length) return res.json({ reply: `⚠️ No posts found under "${keyword}".` });
-        
-          const summary = posts.map(p => `• ${p.title}`).join('\n');
-          return res.json({ reply: `📂 Posts under "${keyword}":\n${summary}` });
-        }
-        
-
-        case 'platform info':
-          return res.json({ reply: getFallbackResponse() });
-
-        default:
-          return res.json({ reply: '🤖 Sorry, I didn’t understand that intent. Try asking about news, authors, tags or City Insight info.' });
-      }
+  switch (intent) {
+    case 'latest posts': {
+      const postsList = await post.find().sort({ createdAt: -1 }).limit(5).populate('author', 'name');
+      const summary = postsList.map(p => `• ${p.title} — by ${p.author.name}`).join('\n');
+      return res.json({ reply: `📰 Latest posts:\n${summary}` });
     }
+
+    case 'user info': {
+      if (!userId) return res.json({ reply: "⚠️ You're not logged in, so I can't fetch your role or profile." });
+
+      const currentUser = await user.findById(userId).select('name role');
+      if (!currentUser) return res.json({ reply: "❌ User not found." });
+
+      return res.json({ reply: `👤 Your name is *${currentUser.name}* and your role is *${currentUser.role}*.` });
+    }
+
+    case 'posts by author': {
+      const name = extractAuthorName(message);
+      if (!name) return res.json({ reply: "❌ Couldn't identify the author's name." });
+
+      const authors = await user.find({ name: { $regex: name, $options: 'i' } });
+      if (!authors.length) return res.json({ reply: `❌ No author found with name "${name}".` });
+
+      const posts = await post.find({ author: { $in: authors.map(a => a._id) } }).populate('author');
+      if (!posts.length) return res.json({ reply: `⚠️ No posts by "${name}".` });
+
+      const summary = posts.map(p => `🔹 *${p.title}* by ${p.author.name}`).join('\n');
+      return res.json({ reply: summary });
+    }
+
+    case 'posts by tag or category': {
+      const keyword = extractTagOrCategory(message);
+      if (!keyword) return res.json({ reply: "❓ Please specify a tag or category." });
+
+      const posts = await post.find({
+        $or: [
+          { tags: { $regex: new RegExp(keyword, 'i') } },
+          { category: { $in: await category.find({ name: { $regex: new RegExp(keyword, 'i') } }).select('_id') } }
+        ]
+      }).limit(5);
+
+      if (!posts.length) return res.json({ reply: `⚠️ No posts found under "${keyword}".` });
+
+      const summary = posts.map(p => `• ${p.title}`).join('\n');
+      return res.json({ reply: `📂 Posts under "${keyword}":\n${summary}` });
+    }
+
+    case 'post by title':
+    case 'posts by title': { // both cases supported
+      const title = extractPostTitle(message);
+      if (!title) return res.json({ reply: "❌ Couldn't identify the post title." });
+
+      const matchedPosts = await post.find({
+        title: { $regex: new RegExp(title, 'i') }
+      }).populate('author', 'name');
+
+      if (!matchedPosts.length)
+        return res.json({ reply: `⚠️ No posts found with title similar to "${title}".` });
+
+        const summary = matchedPosts.map(p => {
+          // Get the first 100 characters of the post content for a snippet
+          const snippet = p.content ? p.content.substring(0, 100) + '...' : 'No content preview available';
+        
+          return `🔸 *${p.title}* — by *${p.author.name}* [${p.category}]\n📅 Created on: ${new Date(p.createdAt).toLocaleDateString()} \n📝 Snippet: "${snippet}"\n`;
+        }).join('\n');
+        
+      return res.json({ reply: `📌 Posts matching "${title}":\n${summary}` });
+    }
+
+    case 'platform info':
+      return res.json({ reply: getFallbackResponse() });
+
+    default:
+      return res.json({ reply: '🤖 Sorry, I didn’t understand that intent. Try asking about news, authors, tags or City Insight info.' });
+  }
+}
+
 
 
 

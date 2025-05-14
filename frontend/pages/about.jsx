@@ -46,9 +46,9 @@ function About() {
           <h2 className="text-2xl font-bold text-blue-800 mb-8">Meet the Team</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {[
-              { name: 'Ayesha Khan', role: 'Chief Editor', img: 'https://randomuser.me/api/portraits/women/68.jpg' },
-              { name: 'Ali Raza', role: 'Content Strategist', img: 'https://randomuser.me/api/portraits/men/45.jpg' },
-              { name: 'Zara Malik', role: 'Community Reporter', img: 'https://randomuser.me/api/portraits/women/76.jpg' },
+              { name: 'Alisha', role: 'Chief Editor', img: 'https://randomuser.me/api/portraits/women/68.jpg' },
+              { name: 'Roman', role: 'Content Strategist', img: 'https://randomuser.me/api/portraits/women/45.jpg' },
+              { name: 'Laiba', role: 'Community Reporter', img: 'https://randomuser.me/api/portraits/women/76.jpg' },
             ].map((person) => (
               <div key={person.name} className="bg-gray-50 rounded-xl p-4 shadow-md text-center">
                 <img

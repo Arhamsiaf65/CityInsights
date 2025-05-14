@@ -34,7 +34,6 @@ export function UserProvider({ children }) {
                     if (res.ok) {
                         setUser(data.user);
                         setIsLogin(true);
-                        console.log("User fetched after refresh ✅", data.user);
                     } else {
                         console.log("Failed to fetch user profile", data.message);
                         setIsLogin(false);
@@ -45,7 +44,6 @@ export function UserProvider({ children }) {
                     setIsLogin(false);
                 }
             } else {
-                console.log("No token found, user not logged in");
                 setIsLogin(false);
             }
         };
@@ -194,7 +192,6 @@ const verifyOTPAndRegister = async (email, otp) => {
             setUser({});             // Clear user data
             setIsLogin(false);        // Mark user as logged out
 
-            console.log("User logged out successfully");
             // Optionally, you can redirect user to login page if you are using react-router
             // navigate('/login');
         } catch (error) {
@@ -218,7 +215,6 @@ const verifyOTPAndRegister = async (email, otp) => {
                 const data = await res.json();
                 if (res.ok) {
                     setUser(data.user); // Update user state with new profile data
-                    console.log("Profile updated successfully ✅", data.user);
                 } else {
                     console.log("Failed to update profile:", data.message || "Unknown error");
                 }
@@ -272,9 +268,7 @@ const verifyOTPAndRegister = async (email, otp) => {
         const facePhotoUrl = await uploadToCloudinary(formData.facePhoto);
         setUploading(false);
   
-        console.log("CNIC Front:", cnicFrontUrl);
-        console.log("CNIC Back:", cnicBackUrl);
-        console.log("Face Photo:", facePhotoUrl);
+        
   
         const body = {
           requestedRole: formData.requestedRole,
@@ -302,7 +296,6 @@ const verifyOTPAndRegister = async (email, otp) => {
         if (res.ok) {
           setUser(data.user);
           toast.success(data.message);
-          console.log("Submitted to backend:", body);
         } else {
           toast.error(data.message || "Failed to apply.");
         }
@@ -337,14 +330,12 @@ const verifyOTPAndRegister = async (email, otp) => {
     
                 const data = await res.json();
                 if (res.ok) {
-                    console.log("Contact message sent successfully ✅", data);
                     toast.success("Your message has been sent successfully!");
                 } else {
-                    console.log("Failed to send contact message:", data.message || "Unknown error");
+                 
                     toast.error("Failed to send your message. Please try again.");
                 }
             } catch (error) {
-                console.log("Error sending contact message", error.message);
                 toast.error("Error sending your message. Please try again.");
             }
         } else {

@@ -52,15 +52,16 @@ function App() {
                   onClick={() => setShowChat(!showChat)}
                   className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all"
                 >
-                  <Bot size={24} />
+                  <Bot className="cursor-pointer" size={24} />
                 </button>
               </div>
 
               {/* ✅ Chatbot Box */}
               {showChat && (
-                <div className="fixed bottom-20 right-6 z-50 w-full max-w-sm">
-                  <Chatbot/>
-                </div>
+              <div className="fixed bottom-24 sm:bottom-20  z-50  w-full sm:max-w-sm  sm:px-0 sm:right-6">
+              <Chatbot />
+            </div>
+            
               )}
             </AdProvider>
           </CategoriesProvider>

@@ -160,7 +160,7 @@ export default function Navbar() {
               }
             >
               <button
-                className="hover:text-yellow-400 transition"
+                className="hover:text-yellow-400 cursor-pointer transition"
                 aria-haspopup="true"
                 aria-expanded={isExploreMenuOpen}
               >
@@ -200,7 +200,7 @@ export default function Navbar() {
                   }
                 }}
 
-                className="px-4 py-2 bg-yellow-400 text-white rounded-full text-sm font-semibold shadow hover:bg-yellow-400 transition sm:min-w-32 md:min-w-40 lg:py-3 lg:max-w-24"
+                className="px-4 py-2 cursor-pointer bg-yellow-400 text-white rounded-full text-sm font-semibold shadow hover:bg-yellow-400 transition sm:min-w-32 md:min-w-40 lg:py-3 lg:max-w-24"
               >
                 Apply as Publisher
               </button>
@@ -228,7 +228,7 @@ export default function Navbar() {
                           navigate(`/user/${user._id}`);
                           setProfileDropdownOpen(false);
                         }}
-                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-all font-medium"
+                        className="flex cursor-pointer items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-all font-medium"
                       >
                         Profile
                       </button>
@@ -236,7 +236,7 @@ export default function Navbar() {
                     <li>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-all font-medium border-t"
+                        className="flex cursor-pointer items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-all font-medium border-t"
                       >
                         Logout
                       </button>
@@ -286,7 +286,7 @@ export default function Navbar() {
               <div className="border-t border-gray-200 pt-4 space-y-3">
                 <button
                   onClick={() => setMobileExploreOpen((prev) => !prev)}
-                  className="flex items-center justify-between w-full px-4 py-2 hover:bg-blue-100 rounded-lg transition text-sm font-semibold"
+                  className="flex items-center cursor-pointer justify-between w-full px-4 py-2 hover:bg-blue-100 rounded-lg transition text-sm font-semibold"
                 >
                   <span>Explore Categories</span>
                   <ChevronDown
