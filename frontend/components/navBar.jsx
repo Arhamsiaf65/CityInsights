@@ -19,7 +19,7 @@ import toast from "react-hot-toast";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [isProfileDropdownOpen, setProfileDropdownOpen] = useState(false);  
   const [isExploreMenuOpen, setExploreMenuOpen] = useState(false);
   const [isMobileExploreOpen, setMobileExploreOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
