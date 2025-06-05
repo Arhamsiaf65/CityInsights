@@ -20,6 +20,7 @@ import Chatbot from "../components/chatbot";
 import Footer from "../components/footer";
 
 import { Bot } from "lucide-react";  // icon
+import Livestream from "../pages/livestream";
 
 function App() {
   const [showChat, setShowChat] = useState(false);
@@ -43,6 +44,7 @@ function App() {
                 <Route path="/post/:id" element={<PostDetail />} />
                 <Route path="/user/:id" element={<User />} />
                 <Route path="/apply-publisher" element={<PublisherRole />} />
+                <Route path="/live" element={<Livestream />} />
               </Routes>
               <Footer />
 

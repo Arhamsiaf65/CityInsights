@@ -19,6 +19,7 @@ app.use(cors({
     origin: [
         'https://city-insight-sigma.vercel.app',
         'https://city-insights-nine.vercel.app',
+        'https://news-97zh.vercel.app/',
         'http://localhost:5173'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],

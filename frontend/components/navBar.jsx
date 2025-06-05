@@ -7,6 +7,7 @@ import {
   HomeIcon,
   InfoIcon,
   PhoneIcon,
+  ListVideoIcon,
 } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState, useContext, useRef, useEffect } from "react";
@@ -38,6 +39,7 @@ export default function Navbar() {
     { to: "/", label: "Home", icon: <HomeIcon size={18} /> },
     { to: "/about", label: "About", icon: <InfoIcon size={18} /> },
     { to: "/contact", label: "Contact", icon: <PhoneIcon size={18} /> },
+    { to: "/live", label: "Live", icon: <ListVideoIcon size={18} /> }
   ];
 
   // Handle outside clicks
